@@ -1,5 +1,3 @@
-# README.md
-
 # BINTANG COMPUTER FEIRA
 
 ## Modern IT Consultant & Technology Solution
