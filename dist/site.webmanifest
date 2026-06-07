@@ -1,0 +1,16 @@
+{
+  "name": "Bintang Computer Feira",
+  "short_name": "BCF",
+  "description": "Modern IT consultant and technology solution partner.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F1E4",
+  "theme_color": "#F8F1E4",
+  "icons": [
+    {
+      "src": "/assets/branding/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    }
+  ]
+}
