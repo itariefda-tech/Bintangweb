@@ -118,14 +118,18 @@
 
     <main id="main-content">
       <section class="section hero-section section-with-decor" id="home">
-        <div class="decor decor-circuit decor-circuit-top" aria-hidden="true"></div>
-        <div class="decor decor-soft-glow decor-soft-glow-one" aria-hidden="true"></div>
+        <div class="decor hero-decor decor-circuit decor-circuit-top" aria-hidden="true"></div>
+        <div class="decor hero-decor decor-soft-glow decor-soft-glow-one" aria-hidden="true"></div>
+        <img class="hero-decor hero-decor-circuit" src="./assets/decorations/circuit-gold.svg" width="420" height="260" alt="" aria-hidden="true" decoding="async">
+        <img class="hero-decor hero-decor-cloud" src="./assets/decorations/cloud-glow.svg" width="220" height="140" alt="" aria-hidden="true" decoding="async">
+        <img class="hero-decor hero-decor-node" src="./assets/decorations/network-node.svg" width="260" height="180" alt="" aria-hidden="true" decoding="async">
+        <img class="hero-decor hero-decor-orb" src="./assets/decorations/hero-orb.svg" width="180" height="180" alt="" aria-hidden="true" decoding="async">
 
         <div class="container hero-grid">
-          <div class="hero-copy section-content">
+          <div class="hero-copy hero-content section-content">
             <p class="eyebrow">Modern IT Consultant</p>
-            <h1>Complete IT Solutions for Smarter Business</h1>
-            <p class="hero-lead">
+            <h1 class="hero-title">Complete IT Solutions for Smarter Business</h1>
+            <p class="hero-lead hero-subtitle">
               Bintang Computer Feira membantu bisnis Anda membangun sistem IT yang lebih modern, aman, efisien, dan siap berkembang.
             </p>
             <div class="button-group">
@@ -139,46 +143,23 @@
             </div>
           </div>
 
-          <div class="hero-visual card glass-card section-content" aria-label="Ilustrasi solusi teknologi">
-            <img
-              class="circuit-asset"
-              src="./assets/decorations/circuit-line.svg"
-              width="520"
-              height="220"
-              alt=""
-              aria-hidden="true"
-              decoding="async"
-              fetchpriority="low"
-            >
-            <div class="visual-grid" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
+          <figure class="hero-visual section-content" aria-label="Visual solusi IT Bintang Computer Feira">
+            <div class="hero-visual-frame">
+              <picture>
+                <source srcset="./assets/images/hero-it-consultant.webp" type="image/webp">
+                <img
+                  class="hero-image"
+                  src="./assets/images/hero-it-consultant.png"
+                  width="866"
+                  height="865"
+                  alt="IT consultant monitoring business dashboard, network, server, cloud, CCTV, and security system"
+                  loading="eager"
+                  decoding="async"
+                  fetchpriority="high"
+                >
+              </picture>
             </div>
-            <div class="hero-dashboard" aria-hidden="true">
-              <div class="dashboard-top">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <div class="dashboard-screen">
-                <div class="screen-chart"></div>
-                <div class="screen-lines">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              </div>
-            </div>
-            <div class="visual-core">
-              <span class="visual-orbit"></span>
-              <span class="visual-device">IT</span>
-            </div>
-            <div class="tech-chip chip-server">Server</div>
-            <div class="tech-chip chip-cctv">CCTV</div>
-            <div class="tech-chip chip-cloud">Cloud</div>
-          </div>
+          </figure>
         </div>
       </section>
 

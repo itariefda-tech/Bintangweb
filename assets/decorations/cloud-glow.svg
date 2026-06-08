@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 140" fill="none">
+  <defs>
+    <filter id="blur" x="-40%" y="-60%" width="180%" height="220%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+  <ellipse cx="112" cy="72" rx="92" ry="44" fill="#DCEFF7" opacity=".42" filter="url(#blur)"/>
+  <path d="M67 87h91c16 0 29-12 29-27 0-14-11-26-26-27-6-16-22-27-42-27-23 0-42 16-45 37h-7c-14 0-25 10-25 22s11 22 25 22Z" fill="#FFFCF6" opacity=".54"/>
+</svg>
