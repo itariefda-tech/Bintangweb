@@ -679,6 +679,36 @@
             <p class="eyebrow">Process</p>
             <h2>From consultation to implementation.</h2>
           </div>
+          <div class="process-audio" data-process-audio>
+            <button
+              class="process-audio-toggle"
+              type="button"
+              aria-label="Putar soundtrack Process"
+              aria-pressed="false"
+              data-process-audio-toggle
+            >
+              <span class="process-audio-icon" aria-hidden="true"></span>
+            </button>
+            <div class="process-audio-copy">
+              <span class="process-audio-kicker">Process Soundscape</span>
+              <strong data-process-audio-status>Play the first 60 seconds</strong>
+              <div
+                class="process-audio-progress"
+                role="progressbar"
+                aria-label="Progress soundtrack"
+                aria-valuemin="0"
+                aria-valuemax="60"
+                aria-valuenow="0"
+                data-process-audio-progress
+              >
+                <span data-process-audio-progress-fill></span>
+              </div>
+            </div>
+            <span class="process-audio-time" data-process-audio-time>00:00 / 01:00</span>
+            <audio preload="metadata" data-process-audio-source>
+              <source src="./assets/audio/ost-arcane.mp3" type="audio/mpeg">
+            </audio>
+          </div>
           <div class="process-grid">
             <article class="process-step">
               <span>1</span>

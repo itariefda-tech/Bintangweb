@@ -1634,6 +1634,118 @@
   backdrop-filter: blur(10px);
 }
 
+.process-audio {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  width: min(100%, 620px);
+  margin: calc(var(--space-lg) * -0.35) auto var(--space-lg);
+  padding: 0.7rem 0.9rem;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid rgba(255, 217, 141, 0.34);
+  border-radius: 999px;
+  color: var(--white-soft);
+  background:
+    linear-gradient(110deg, rgba(8, 19, 31, 0.76), rgba(22, 38, 53, 0.46));
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.process-audio-toggle {
+  position: relative;
+  display: grid;
+  width: 2.85rem;
+  height: 2.85rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 236, 188, 0.72);
+  border-radius: 50%;
+  color: #241507;
+  background: linear-gradient(135deg, #fff0c2, #d89d32);
+  box-shadow: 0 0 24px rgba(240, 179, 67, 0.24);
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.process-audio-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 32px rgba(240, 179, 67, 0.38);
+}
+
+.process-audio-toggle:focus-visible {
+  outline: 3px solid rgba(255, 232, 174, 0.42);
+  outline-offset: 3px;
+}
+
+.process-audio-icon {
+  width: 0;
+  height: 0;
+  margin-left: 0.18rem;
+  border-top: 0.4rem solid transparent;
+  border-bottom: 0.4rem solid transparent;
+  border-left: 0.62rem solid currentColor;
+}
+
+.process-audio.is-playing .process-audio-icon {
+  width: 0.62rem;
+  height: 0.78rem;
+  margin-left: 0;
+  border: 0;
+  border-right: 0.2rem solid currentColor;
+  border-left: 0.2rem solid currentColor;
+}
+
+.process-audio-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.process-audio-kicker {
+  color: #ffd98d;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.process-audio-copy strong {
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-audio-progress {
+  height: 3px;
+  margin-top: 0.28rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.process-audio-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d89d32, #fff0c2);
+}
+
+.process-audio-time {
+  color: rgba(242, 247, 252, 0.68);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.process-audio audio {
+  display: none;
+}
+
 .process-grid {
   gap: 0;
   border: 1px solid rgba(240, 179, 67, 0.38);

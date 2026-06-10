@@ -295,6 +295,15 @@
 }
 
 @media (max-width: 640px) {
+  .process-audio {
+    grid-template-columns: auto minmax(0, 1fr);
+    border-radius: var(--radius-lg);
+  }
+
+  .process-audio-time {
+    grid-column: 2;
+  }
+
   .hero-section {
     padding: 82px 0 52px;
     background-position: 58% top;

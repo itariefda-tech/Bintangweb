@@ -102,7 +102,7 @@ if (siteHeader && "ResizeObserver" in window) {
 }
 
 const revealItems = document.querySelectorAll(
-  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-step, .cta-panel"
+  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-audio, .process-step, .cta-panel"
 );
 
 if (revealItems.length && "IntersectionObserver" in window) {
@@ -121,6 +121,111 @@ if (revealItems.length && "IntersectionObserver" in window) {
   );
 
   revealItems.forEach((item) => revealObserver.observe(item));
+}
+
+const processAudioPanel = document.querySelector("[data-process-audio]");
+
+if (processAudioPanel) {
+  const audio = processAudioPanel.querySelector("[data-process-audio-source]");
+  const toggle = processAudioPanel.querySelector("[data-process-audio-toggle]");
+  const status = processAudioPanel.querySelector("[data-process-audio-status]");
+  const time = processAudioPanel.querySelector("[data-process-audio-time]");
+  const progress = processAudioPanel.querySelector("[data-process-audio-progress]");
+  const progressFill = processAudioPanel.querySelector(
+    "[data-process-audio-progress-fill]"
+  );
+  const processSection = processAudioPanel.closest(".process-section");
+  const previewDuration = 60;
+
+  function formatAudioTime(seconds) {
+    const safeSeconds = Math.max(0, Math.min(previewDuration, seconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const remainingSeconds = Math.floor(safeSeconds % 60);
+    return `${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds
+    ).padStart(2, "0")}`;
+  }
+
+  function updateProcessAudio() {
+    if (!audio) return;
+
+    const currentTime = Math.min(audio.currentTime, previewDuration);
+    const percentage = (currentTime / previewDuration) * 100;
+    const isPlaying = !audio.paused && currentTime < previewDuration;
+
+    processAudioPanel.classList.toggle("is-playing", isPlaying);
+    toggle?.setAttribute("aria-pressed", String(isPlaying));
+    toggle?.setAttribute(
+      "aria-label",
+      isPlaying ? "Jeda soundtrack Process" : "Putar soundtrack Process"
+    );
+
+    if (status) {
+      status.textContent = isPlaying
+        ? "Now playing: 60-second Process soundscape"
+        : currentTime >= previewDuration
+          ? "Preview finished - play again"
+          : "Play the first 60 seconds";
+    }
+
+    if (time) {
+      time.textContent = `${formatAudioTime(currentTime)} / 01:00`;
+    }
+
+    if (progressFill) {
+      progressFill.style.width = `${percentage}%`;
+    }
+
+    progress?.setAttribute("aria-valuenow", String(Math.floor(currentTime)));
+  }
+
+  function stopAtPreviewEnd() {
+    if (!audio || audio.currentTime < previewDuration) return;
+    audio.pause();
+    audio.currentTime = previewDuration;
+    updateProcessAudio();
+  }
+
+  toggle?.addEventListener("click", async () => {
+    if (!audio) return;
+
+    if (!audio.paused) {
+      audio.pause();
+      return;
+    }
+
+    if (audio.currentTime >= previewDuration - 0.05) {
+      audio.currentTime = 0;
+    }
+
+    try {
+      await audio.play();
+    } catch {
+      if (status) status.textContent = "Audio could not be played";
+    }
+  });
+
+  audio?.addEventListener("play", updateProcessAudio);
+  audio?.addEventListener("pause", updateProcessAudio);
+  audio?.addEventListener("timeupdate", () => {
+    stopAtPreviewEnd();
+    updateProcessAudio();
+  });
+
+  if (processSection && "IntersectionObserver" in window) {
+    const processAudioObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting && audio && !audio.paused) {
+          audio.pause();
+        }
+      },
+      { threshold: 0.08 }
+    );
+
+    processAudioObserver.observe(processSection);
+  }
+
+  updateProcessAudio();
 }
 
 const serviceCarousels = document.querySelectorAll("[data-service-carousel]");
