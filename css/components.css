@@ -1232,6 +1232,11 @@
   gap: clamp(1.5rem, 5vw, 3rem);
 }
 
+.about-story-track,
+.why-story-track {
+  display: contents;
+}
+
 .about-copy {
   display: grid;
   min-width: 0;
