@@ -33,7 +33,7 @@ RUN rm /etc/nginx/conf.d/default.conf && \
       '        try_files $uri $uri/ /index.html;' \
       '    }' \
       '' \
-      '    location ~* \.[0-9a-f]{12}\.min\.(?:css|js)$ {' \
+      '    location ~* "\.[0-9a-f]{12}\.min\.(?:css|js)$" {' \
       '        expires 1y;' \
       '        add_header Cache-Control "public, max-age=31536000, immutable";' \
       '        try_files $uri =404;' \
