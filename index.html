@@ -70,7 +70,7 @@
     <header class="site-header" data-site-header>
       <div class="container nav-shell">
         <a class="brand" href="#home" aria-label="Bintang Computer Feira">
-          <span class="brand-mark" aria-hidden="true">
+          <span class="brand-mark" aria-hidden="true" data-owner-trigger title="Bintang Computer Feira">
             <img src="./assets/images/logo_bcf.webp" width="1536" height="1024" alt="">
           </span>
           <span class="brand-copy">
@@ -85,6 +85,7 @@
           <a href="#services">Services</a>
           <a href="#solutions">Solutions</a>
           <a href="#process">Process</a>
+          <a href="#portfolio">Work</a>
           <a href="#contact">Contact</a>
         </nav>
 
@@ -111,6 +112,7 @@
             <a href="#services">Services</a>
             <a href="#solutions">Solutions</a>
             <a href="#process">Process</a>
+            <a href="#portfolio">Portfolio</a>
             <a href="#contact">Contact</a>
           </nav>
           <a class="button button-primary" href="#service-detail">Product</a>
@@ -735,6 +737,283 @@
         </div>
       </section>
 
+      <section class="section proof-section" id="portfolio" data-proof-room>
+        <div class="proof-grid-lines" aria-hidden="true"></div>
+        <div class="container">
+          <div class="section-header proof-header">
+            <p class="eyebrow">Selected Work / Client Stories</p>
+            <h2>Bukan sekadar selesai dipasang.<br class="proof-title-break"> Harus terasa lebih siap dipakai.</h2>
+          </div>
+
+          <div class="proof-layout">
+            <div class="proof-dossier">
+              <div class="proof-tabs" role="tablist" aria-label="Pilih kategori proyek">
+                <button
+                  class="proof-tab is-active"
+                  id="proof-tab-office"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="proof-case-office"
+                  tabindex="0"
+                  data-proof-tab="office"
+                >
+                  <span>01</span>
+                  <strong>Office System</strong>
+                  <small>Infrastructure</small>
+                </button>
+                <button
+                  class="proof-tab"
+                  id="proof-tab-security"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="proof-case-security"
+                  tabindex="-1"
+                  data-proof-tab="security"
+                >
+                  <span>02</span>
+                  <strong>Smart Security</strong>
+                  <small>Monitoring</small>
+                </button>
+                <button
+                  class="proof-tab"
+                  id="proof-tab-digital"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="proof-case-digital"
+                  tabindex="-1"
+                  data-proof-tab="digital"
+                >
+                  <span>03</span>
+                  <strong>Digital Presence</strong>
+                  <small>Web System</small>
+                </button>
+              </div>
+
+              <div class="proof-case-stack" aria-live="polite">
+                <article
+                  class="proof-case is-active"
+                  id="proof-case-office"
+                  role="tabpanel"
+                  aria-labelledby="proof-tab-office"
+                  data-proof-case="office"
+                >
+                  <div class="proof-case-visual proof-case-visual-office">
+                    <div class="proof-visual-topline">
+                      <span>Project 01</span>
+                      <span>Solution Showcase</span>
+                    </div>
+                    <div class="proof-visual-diagram" aria-hidden="true">
+                      <span class="proof-node proof-node-core">CORE</span>
+                      <span class="proof-node proof-node-a">WORK</span>
+                      <span class="proof-node proof-node-b">DATA</span>
+                      <span class="proof-node proof-node-c">PRINT</span>
+                    </div>
+                    <div class="proof-visual-caption">
+                      <span>Office Infrastructure</span>
+                      <strong>One connected operational core.</strong>
+                    </div>
+                  </div>
+
+                  <div class="proof-case-copy">
+                    <div class="proof-case-heading">
+                      <p class="proof-kicker">Infrastructure Blueprint</p>
+                      <h3>Satu fondasi untuk perangkat, jaringan, dan kontrol operasional.</h3>
+                    </div>
+                    <dl class="proof-facts">
+                      <div>
+                        <dt>The Challenge</dt>
+                        <dd>Perangkat bertambah, tetapi struktur jaringan dan dokumentasinya belum tumbuh bersama.</dd>
+                      </div>
+                      <div>
+                        <dt>The Outcome</dt>
+                        <dd>Sistem lebih mudah dipantau, dirawat, dan disiapkan untuk kebutuhan berikutnya.</dd>
+                      </div>
+                    </dl>
+                    <div class="proof-tags" aria-label="Ruang lingkup solusi">
+                      <span>Network</span>
+                      <span>Procurement</span>
+                      <span>Documentation</span>
+                    </div>
+                    <figure class="client-note">
+                      <blockquote data-testimonial-quote>
+                        Testimoni customer akan ditampilkan setelah izin publikasi.
+                      </blockquote>
+                      <figcaption>
+                        <span class="client-monogram" aria-hidden="true" data-testimonial-monogram>BCF</span>
+                        <span><strong data-testimonial-name>Client Note</strong><small data-testimonial-meta>Identity protected until approved</small></span>
+                      </figcaption>
+                    </figure>
+                  </div>
+                </article>
+
+                <article
+                  class="proof-case"
+                  id="proof-case-security"
+                  role="tabpanel"
+                  aria-labelledby="proof-tab-security"
+                  data-proof-case="security"
+                >
+                  <div class="proof-case-visual proof-case-visual-security">
+                    <div class="proof-visual-topline">
+                      <span>Project 02</span>
+                      <span>Solution Showcase</span>
+                    </div>
+                    <div class="proof-security-screen" aria-hidden="true">
+                      <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="proof-visual-caption">
+                      <span>Security &amp; Monitoring</span>
+                      <strong>See the right area, at the right time.</strong>
+                    </div>
+                  </div>
+
+                  <div class="proof-case-copy">
+                    <div class="proof-case-heading">
+                      <p class="proof-kicker">Monitoring Architecture</p>
+                      <h3>Area penting terlihat jelas, akses monitoring tetap sederhana.</h3>
+                    </div>
+                    <dl class="proof-facts">
+                      <div>
+                        <dt>The Challenge</dt>
+                        <dd>Titik pengawasan belum mengikuti prioritas area dan pencarian rekaman memakan waktu.</dd>
+                      </div>
+                      <div>
+                        <dt>The Outcome</dt>
+                        <dd>Monitoring harian menjadi lebih terarah dengan akses yang sesuai kewenangan.</dd>
+                      </div>
+                    </dl>
+                    <div class="proof-tags" aria-label="Ruang lingkup solusi">
+                      <span>Site Audit</span>
+                      <span>CCTV</span>
+                      <span>Remote View</span>
+                    </div>
+                    <figure class="client-note">
+                      <blockquote data-testimonial-quote>
+                        Komentar customer akan ditampilkan setelah izin publikasi.
+                      </blockquote>
+                      <figcaption>
+                        <span class="client-monogram" aria-hidden="true" data-testimonial-monogram>BCF</span>
+                        <span><strong data-testimonial-name>Client Note</strong><small data-testimonial-meta>Publication approval in progress</small></span>
+                      </figcaption>
+                    </figure>
+                  </div>
+                </article>
+
+                <article
+                  class="proof-case"
+                  id="proof-case-digital"
+                  role="tabpanel"
+                  aria-labelledby="proof-tab-digital"
+                  data-proof-case="digital"
+                >
+                  <div class="proof-case-visual proof-case-visual-digital">
+                    <div class="proof-visual-topline">
+                      <span>Project 03</span>
+                      <span>Solution Showcase</span>
+                    </div>
+                    <div class="proof-browser-frame" aria-hidden="true">
+                      <span class="proof-browser-bar"></span>
+                      <span class="proof-browser-title"></span>
+                      <span class="proof-browser-copy"></span>
+                      <span class="proof-browser-button"></span>
+                    </div>
+                    <div class="proof-visual-caption">
+                      <span>Business Website</span>
+                      <strong>A clearer path from interest to inquiry.</strong>
+                    </div>
+                  </div>
+
+                  <div class="proof-case-copy">
+                    <div class="proof-case-heading">
+                      <p class="proof-kicker">Digital Experience</p>
+                      <h3>Identitas bisnis yang lebih meyakinkan sejak kunjungan pertama.</h3>
+                    </div>
+                    <dl class="proof-facts">
+                      <div>
+                        <dt>The Challenge</dt>
+                        <dd>Informasi layanan tersebar dan belum memiliki presentasi digital yang konsisten.</dd>
+                      </div>
+                      <div>
+                        <dt>The Outcome</dt>
+                        <dd>Alur dari mengenal layanan menuju konsultasi menjadi lebih jelas bagi customer.</dd>
+                      </div>
+                    </dl>
+                    <div class="proof-tags" aria-label="Ruang lingkup solusi">
+                      <span>Content Flow</span>
+                      <span>Responsive UI</span>
+                      <span>Lead Path</span>
+                    </div>
+                    <figure class="client-note">
+                      <blockquote data-testimonial-quote>
+                        Testimoni terverifikasi akan ditampilkan setelah disetujui.
+                      </blockquote>
+                      <figcaption>
+                        <span class="client-monogram" aria-hidden="true" data-testimonial-monogram>BCF</span>
+                        <span><strong data-testimonial-name>Client Note</strong><small data-testimonial-meta>Verified feedback reserved</small></span>
+                      </figcaption>
+                    </figure>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <aside class="project-film" aria-labelledby="project-film-title">
+              <div class="project-film-frame" data-project-film>
+                <video
+                  class="project-film-video"
+                  playsinline
+                  controls
+                  preload="none"
+                  poster="./assets/images/bg_process02.webp"
+                  aria-label="Video proyek Bintang Computer Feira"
+                  data-project-video
+                  hidden
+                ></video>
+                <button
+                  class="project-film-poster"
+                  type="button"
+                  aria-describedby="project-film-status"
+                  data-project-play
+                >
+                  <span class="project-film-meta">
+                    <span>Field Notes 01</span>
+                    <span>Film preview</span>
+                  </span>
+                  <span class="project-film-play" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M9 7l8 5-8 5V7z"/>
+                    </svg>
+                  </span>
+                  <span class="project-film-caption">
+                    <small>From planning room to final testing</small>
+                    <strong id="project-film-title">Watch the work behind the system.</strong>
+                  </span>
+                </button>
+                <p class="project-film-status" id="project-film-status" role="status" data-project-status>
+                  Project film sedang disiapkan. Player akan aktif setelah video proyek asli tersedia.
+                </p>
+              </div>
+              <div class="project-film-copy">
+                <p class="proof-kicker">Cinematic Field Notes</p>
+                <h3>Understand. Design. Build. Test. Stay.</h3>
+                <a class="project-film-link" href="#contact">Discuss your next system <span aria-hidden="true">+</span></a>
+              </div>
+            </aside>
+          </div>
+
+          <div class="proof-bridge">
+            <p>Punya kebutuhan yang mirip, atau justru belum tahu harus mulai dari mana?</p>
+            <div class="button-group">
+              <a class="button button-primary" href="#contact">Diskusikan Kebutuhan Anda</a>
+              <a class="button button-secondary" href="#services">Lihat Semua Layanan</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div class="contact-footer-viewport">
         <section class="section cta-section" id="contact">
           <div class="container">
@@ -789,6 +1068,21 @@
     <a class="floating-whatsapp" href="https://wa.me/628170725258" target="_blank" rel="noreferrer" aria-label="Hubungi WhatsApp">
       WA
     </a>
+
+    <dialog class="owner-access" data-owner-dialog>
+      <form class="owner-access-card" method="dialog" data-owner-login-form>
+        <button class="owner-access-close" type="button" aria-label="Tutup akses owner" data-owner-close>&times;</button>
+        <p class="eyebrow">Private Access</p>
+        <h2>Owner control room.</h2>
+        <p>Masukkan credential owner untuk melanjutkan.</p>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" autocomplete="current-password" required data-owner-password>
+        </label>
+        <p class="owner-access-error" role="alert" data-owner-error></p>
+        <button class="button button-primary" type="submit">Buka Builder</button>
+      </form>
+    </dialog>
 
     <script src="./js/app.js" defer></script>
   </body>

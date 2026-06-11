@@ -274,6 +274,73 @@ Website siap publish.
 
 ---
 
+# Phase 8 - Proof Room
+
+## Status
+
+Implemented foundation - Real customer assets pending
+
+## Objective
+
+Menambahkan bukti kerja yang menghubungkan portofolio, pengalaman customer, dan video proyek sebelum CTA contact.
+
+## Tasks
+
+* [x] Portfolio and testimonial layout
+* [x] Three selectable solution showcases
+* [x] Keyboard-accessible tab interaction
+* [x] Cinematic project film player shell
+* [x] Honest empty state for unavailable video
+* [x] Pause Process audio when project video plays
+* [x] Responsive layout and overflow validation
+* [ ] Add approved customer identities and logos
+* [ ] Add verified customer comments
+* [ ] Add real project photos and video
+* [ ] Add video captions
+
+## Output
+
+* `#portfolio` Proof Room between Process and Contact
+* Desktop asymmetric portfolio/video layout
+* Mobile horizontal project selector
+* Future-ready video player behavior
+* Detailed specification: `docs/portfolio-testimonial-video-design.md`
+
+---
+
+# Phase 9 - Private Owner Builder
+
+## Status
+
+Completed
+
+## Objective
+
+Memberi owner control room tersembunyi untuk mengelola konten dinamis tanpa mengekspos credential ke frontend.
+
+## Tasks
+
+* [x] Five-second logo hold access
+* [x] Environment-based owner credential
+* [x] HttpOnly owner session
+* [x] Hidden authenticated builder route
+* [x] Work video upload
+* [x] Work testimonial editor
+* [x] Section background upload
+* [x] Process audio autoplay toggle
+* [x] Persistent server settings and media
+* [x] Docker data volume support
+
+## Output
+
+* `owner-builder.html`
+* `css/owner-builder.css`
+* `js/owner-builder.js`
+* Owner API and static runtime in `app.py`
+* `.env.example`
+
+---
+
 # Final Vision
 
 Website harus terasa:

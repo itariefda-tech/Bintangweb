@@ -3,6 +3,100 @@ const mobileMenu = document.querySelector("[data-mobile-menu]");
 const mobileLinks = document.querySelectorAll(".mobile-nav a, .mobile-menu .button");
 const siteHeader = document.querySelector("[data-site-header]");
 
+const defaultPublicSettings = {
+  processAudioAutoplay: true,
+  workVideo: "",
+  backgrounds: {},
+  testimonials: {},
+};
+
+function setManagedBackground(selector, url, overlay) {
+  const element = document.querySelector(selector);
+  if (!element || !url) return;
+  element.style.backgroundImage = `${overlay}, url("${url}")`;
+  element.style.backgroundPosition = "center";
+  element.style.backgroundRepeat = "no-repeat";
+  element.style.backgroundSize = "cover";
+}
+
+function initialsFromName(name) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return "BCF";
+  return words.slice(0, 2).map((word) => word[0]).join("").toUpperCase();
+}
+
+function applyPublicSettings(settings) {
+  const backgrounds = settings.backgrounds || {};
+  setManagedBackground(
+    ".site-header",
+    backgrounds.header,
+    "linear-gradient(90deg, rgba(231, 241, 246, 0.9), rgba(231, 241, 246, 0.72))"
+  );
+  setManagedBackground(
+    ".hero-section",
+    backgrounds.hero,
+    "linear-gradient(90deg, rgba(255, 252, 246, 0.86), rgba(255, 252, 246, 0.18))"
+  );
+  setManagedBackground(
+    ".about-section",
+    backgrounds.about,
+    "linear-gradient(110deg, rgba(255, 252, 246, 0.9), rgba(220, 239, 247, 0.42))"
+  );
+  setManagedBackground(
+    ".why-section",
+    backgrounds.solutions,
+    "linear-gradient(110deg, rgba(255, 252, 246, 0.9), rgba(220, 239, 247, 0.3))"
+  );
+  setManagedBackground(
+    ".process-section",
+    backgrounds.process,
+    "linear-gradient(180deg, rgba(4, 10, 18, 0.32), rgba(4, 10, 18, 0.68))"
+  );
+  setManagedBackground(
+    ".cta-section",
+    backgrounds.contact,
+    "linear-gradient(180deg, rgba(15, 52, 81, 0.28), rgba(15, 52, 81, 0.5))"
+  );
+  setManagedBackground(
+    ".site-footer",
+    backgrounds.footer,
+    "linear-gradient(180deg, rgba(4, 15, 27, 0.34), rgba(3, 13, 24, 0.72))"
+  );
+
+  Object.entries(settings.testimonials || {}).forEach(([caseId, testimonial]) => {
+    const proofCase = document.querySelector(`[data-proof-case="${caseId}"]`);
+    if (!proofCase || !testimonial?.quote) return;
+
+    const name = testimonial.name || "Verified Client";
+    const normalizedMeta = [testimonial.role, testimonial.company]
+      .filter(Boolean)
+      .join(" / ");
+    proofCase.querySelector("[data-testimonial-quote]").textContent = testimonial.quote;
+    proofCase.querySelector("[data-testimonial-name]").textContent = name;
+    proofCase.querySelector("[data-testimonial-meta]").textContent =
+      normalizedMeta || "Verified project feedback";
+    proofCase.querySelector("[data-testimonial-monogram]").textContent =
+      initialsFromName(name);
+  });
+
+  const projectFilm = document.querySelector("[data-project-film]");
+  if (projectFilm && settings.workVideo) {
+    projectFilm.dataset.videoSrc = settings.workVideo;
+    const filmLabel = projectFilm.querySelector(".project-film-meta span:last-child");
+    if (filmLabel) filmLabel.textContent = "Ready to play";
+  }
+}
+
+const publicSettingsPromise = fetch("/api/public-settings", {
+  credentials: "same-origin",
+})
+  .then((response) => (response.ok ? response.json() : defaultPublicSettings))
+  .catch(() => defaultPublicSettings)
+  .then((settings) => {
+    applyPublicSettings(settings);
+    return settings;
+  });
+
 function frameThrottle(callback) {
   let frameId = 0;
 
@@ -57,7 +151,7 @@ window.addEventListener("scroll", frameThrottle(updateHeaderState), {
 });
 
 const viewportSections = document.querySelectorAll(
-  "main > .section:not(.hero-section):not(.cta-section)"
+  "main > .section:not(.hero-section):not(.cta-section):not(.proof-section)"
 );
 
 function fitDesktopSections() {
@@ -119,7 +213,7 @@ if (siteHeader && "ResizeObserver" in window) {
 }
 
 const revealItems = document.querySelectorAll(
-  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-step, .cta-panel"
+  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-step, .proof-dossier, .project-film, .proof-bridge, .cta-panel"
 );
 
 if (revealItems.length && "IntersectionObserver" in window) {
@@ -142,7 +236,8 @@ if (revealItems.length && "IntersectionObserver" in window) {
 
 const processAudio = document.querySelector("[data-process-audio]");
 
-if (processAudio) {
+publicSettingsPromise.then((settings) => {
+if (processAudio && settings.processAudioAutoplay) {
   const processSection = processAudio.closest(".process-section");
   const previewDuration = 60;
   let processIsVisible = false;
@@ -196,9 +291,199 @@ if (processAudio) {
     });
   });
 }
+});
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const proofRooms = document.querySelectorAll("[data-proof-room]");
+
+proofRooms.forEach((proofRoom) => {
+  const tabs = Array.from(proofRoom.querySelectorAll("[data-proof-tab]"));
+  const cases = Array.from(proofRoom.querySelectorAll("[data-proof-case]"));
+
+  if (!tabs.length || tabs.length !== cases.length) return;
+
+  proofRoom.classList.add("proof-enhanced");
+
+  function activateCase(caseId, focusTab = false) {
+    const activeIndex = tabs.findIndex((tab) => tab.dataset.proofTab === caseId);
+    if (activeIndex < 0) return;
+
+    tabs.forEach((tab, index) => {
+      const isActive = index === activeIndex;
+      tab.classList.toggle("is-active", isActive);
+      tab.setAttribute("aria-selected", String(isActive));
+      tab.tabIndex = isActive ? 0 : -1;
+      if (isActive && focusTab) tab.focus();
+    });
+
+    cases.forEach((proofCase) => {
+      const isActive = proofCase.dataset.proofCase === caseId;
+      proofCase.classList.toggle("is-active", isActive);
+      proofCase.hidden = !isActive;
+    });
+
+    const tabList = tabs[activeIndex].parentElement;
+    tabList?.scrollTo({
+      left: Math.max(0, tabs[activeIndex].offsetLeft - tabList.offsetLeft),
+      behavior: prefersReducedMotion.matches ? "auto" : "smooth",
+    });
+    scheduleDesktopSectionFit();
+  }
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => activateCase(tab.dataset.proofTab));
+    tab.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+        return;
+      }
+
+      event.preventDefault();
+      let nextIndex = index;
+
+      if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+      if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+      if (event.key === "Home") nextIndex = 0;
+      if (event.key === "End") nextIndex = tabs.length - 1;
+
+      activateCase(tabs[nextIndex].dataset.proofTab, true);
+    });
+  });
+
+  activateCase(tabs.find((tab) => tab.classList.contains("is-active"))?.dataset.proofTab ?? tabs[0].dataset.proofTab);
+});
+
+const projectFilms = document.querySelectorAll("[data-project-film]");
+
+projectFilms.forEach((film) => {
+  const video = film.querySelector("[data-project-video]");
+  const playButton = film.querySelector("[data-project-play]");
+  const status = film.querySelector("[data-project-status]");
+  let statusTimer;
+
+  if (!video || !playButton || !status) return;
+
+  function showStatus(message) {
+    window.clearTimeout(statusTimer);
+    status.textContent = message;
+    status.classList.add("is-visible");
+    statusTimer = window.setTimeout(() => {
+      status.classList.remove("is-visible");
+    }, 5200);
+  }
+
+  playButton.addEventListener("click", async () => {
+    const videoSource = film.dataset.videoSrc?.trim();
+    if (!videoSource) {
+      showStatus("Project film sedang disiapkan. Player akan aktif setelah video proyek asli tersedia.");
+      return;
+    }
+
+    if (!video.src) {
+      video.src = videoSource;
+      video.load();
+    }
+
+    processAudio?.pause();
+    video.hidden = false;
+    playButton.hidden = true;
+
+    try {
+      await video.play();
+    } catch {
+      playButton.hidden = false;
+      video.hidden = true;
+      showStatus("Video belum dapat diputar. Silakan coba kembali.");
+    }
+  });
+
+  video.addEventListener("play", () => processAudio?.pause());
+
+  video.addEventListener("ended", () => {
+    playButton.hidden = false;
+    video.hidden = true;
+    showStatus("Film selesai. Putar kembali atau diskusikan sistem berikutnya bersama kami.");
+  });
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting && !video.paused) video.pause();
+      },
+      { threshold: 0.15 }
+    ).observe(film);
+  }
+});
+
+const ownerTrigger = document.querySelector("[data-owner-trigger]");
+const ownerDialog = document.querySelector("[data-owner-dialog]");
+const ownerLoginForm = document.querySelector("[data-owner-login-form]");
+const ownerPassword = document.querySelector("[data-owner-password]");
+const ownerError = document.querySelector("[data-owner-error]");
+let ownerHoldTimer;
+let ownerHoldStartedAt = 0;
+
+function cancelOwnerHold() {
+  window.clearTimeout(ownerHoldTimer);
+  ownerHoldTimer = undefined;
+  ownerHoldStartedAt = 0;
+  ownerTrigger?.classList.remove("is-owner-holding");
+}
+
+function openOwnerAccess() {
+  cancelOwnerHold();
+  if (!ownerDialog?.open) ownerDialog?.showModal();
+  ownerPassword?.focus();
+}
+
+ownerTrigger?.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return;
+  ownerHoldStartedAt = Date.now();
+  ownerTrigger.classList.add("is-owner-holding");
+  ownerHoldTimer = window.setTimeout(openOwnerAccess, 5000);
+});
+
+["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
+  ownerTrigger?.addEventListener(eventName, () => {
+    if (ownerHoldStartedAt && Date.now() - ownerHoldStartedAt < 5000) {
+      cancelOwnerHold();
+    }
+  });
+});
+
+ownerTrigger?.addEventListener("contextmenu", (event) => event.preventDefault());
+document.querySelector("[data-owner-close]")?.addEventListener("click", () => {
+  ownerDialog?.close();
+});
+
+ownerDialog?.addEventListener("click", (event) => {
+  if (event.target === ownerDialog) ownerDialog.close();
+});
+
+ownerLoginForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  ownerError.textContent = "";
+  const submitButton = ownerLoginForm.querySelector("[type='submit']");
+  submitButton.disabled = true;
+
+  try {
+    const response = await fetch("/api/owner/login", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: ownerPassword.value }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "Akses owner gagal.");
+    window.location.assign("/owner-builder");
+  } catch (error) {
+    ownerError.textContent = error.message;
+    ownerPassword.select();
+  } finally {
+    submitButton.disabled = false;
+  }
+});
 
 const serviceCarousels = document.querySelectorAll("[data-service-carousel]");
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 serviceCarousels.forEach((carousel) => {
   const track = carousel.querySelector("[data-service-carousel-track]");

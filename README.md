@@ -171,3 +171,29 @@ Membangun website company profile yang:
 * Visually memorable
 * Business oriented
 * Ready for scaling
+
+---
+
+# Private Owner Builder
+
+Owner builder tidak memiliki link publik. Dari halaman utama:
+
+1. Tahan logo pada header selama 5 detik.
+2. Masukkan password owner dari `.env`.
+3. Builder dibuka melalui route `/owner-builder`.
+
+Fitur:
+
+* Mock theme preview
+* Upload video untuk section Work
+* Editor testimoni Work
+* Upload background header, hero, about, solutions, process, contact, dan footer
+* Toggle autoplay audio Process
+
+Credential wajib disimpan di `.env` dan tidak boleh di-commit:
+
+```env
+OWNER_PASSWORD=change-this-owner-password
+```
+
+Setting dan upload disimpan di folder `data/`. Pada Docker, gunakan persistent volume ke `/app/data` dan jalankan container dengan `--env-file`.

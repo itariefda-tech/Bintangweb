@@ -7,12 +7,15 @@ const dist = path.join(root, "dist");
 
 const files = {
   html: path.join(root, "index.html"),
+  ownerHtml: path.join(root, "owner-builder.html"),
   css: [
     path.join(root, "css", "style.css"),
     path.join(root, "css", "components.css"),
     path.join(root, "css", "responsive.css"),
   ],
   js: path.join(root, "js", "app.js"),
+  ownerCss: path.join(root, "css", "owner-builder.css"),
+  ownerJs: path.join(root, "js", "owner-builder.js"),
   rootAssets: ["robots.txt", "sitemap.xml", "site.webmanifest"],
 };
 
@@ -103,11 +106,17 @@ html = html
   );
 fs.writeFileSync(path.join(dist, "index.html"), minifyHtml(html));
 
+const ownerHtml = fs.readFileSync(files.ownerHtml, "utf8");
+fs.writeFileSync(path.join(dist, "owner-builder.html"), minifyHtml(ownerHtml));
+fs.copyFileSync(files.ownerCss, path.join(dist, "css", "owner-builder.css"));
+fs.copyFileSync(files.ownerJs, path.join(dist, "js", "owner-builder.js"));
+
 const report = {
   html: "dist/index.html",
   css: `dist/css/${cssFile}`,
   js: `dist/js/${jsFile}`,
   assets: "dist/assets",
+  owner: "dist/owner-builder.html",
 };
 
 console.log(JSON.stringify(report, null, 2));

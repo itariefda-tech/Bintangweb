@@ -50,6 +50,8 @@ if ! docker run -d \
   --name "$APP_NAME" \
   --restart unless-stopped \
   --network "$NETWORK_NAME" \
+  --env-file "$APP_DIR/.env" \
+  -v "${APP_NAME}-data:/app/data" \
   -p "$HOST_PORT:$CONTAINER_PORT" \
   "$CANDIDATE_IMAGE" >/dev/null; then
   rollback

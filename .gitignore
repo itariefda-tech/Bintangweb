@@ -1,2 +1,8 @@
 # Keep the server-specific deployment script local to each environment.
 deploy.sh
+
+# Owner credentials and persisted builder content.
+.env
+data/
+__pycache__/
+*.pyc
