@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const root = path.resolve(__dirname, "..");
 const dist = path.join(root, "dist");
@@ -64,6 +65,10 @@ function minifyHtml(input) {
     .trim();
 }
 
+function contentHash(input) {
+  return crypto.createHash("sha256").update(input).digest("hex").slice(0, 12);
+}
+
 removeDir(dist);
 ensureDir(path.join(dist, "css"));
 ensureDir(path.join(dist, "js"));
@@ -77,21 +82,31 @@ files.rootAssets.forEach((file) => {
 });
 
 const cssBundle = files.css.map((file) => fs.readFileSync(file, "utf8")).join("\n");
-fs.writeFileSync(path.join(dist, "css", "main.min.css"), minifyCss(cssBundle));
+const minifiedCss = minifyCss(cssBundle);
+const cssFile = `main.${contentHash(minifiedCss)}.min.css`;
+fs.writeFileSync(path.join(dist, "css", cssFile), minifiedCss);
 
 const jsBundle = fs.readFileSync(files.js, "utf8");
-fs.writeFileSync(path.join(dist, "js", "app.min.js"), minifyJs(jsBundle));
+const minifiedJs = minifyJs(jsBundle);
+const jsFile = `app.${contentHash(minifiedJs)}.min.js`;
+fs.writeFileSync(path.join(dist, "js", jsFile), minifiedJs);
 
 let html = fs.readFileSync(files.html, "utf8");
 html = html
-  .replace(/<link rel="stylesheet" href="\.\/css\/style\.css">\s*<link rel="stylesheet" href="\.\/css\/components\.css">\s*<link rel="stylesheet" href="\.\/css\/responsive\.css">/, '<link rel="stylesheet" href="./css/main.min.css">')
-  .replace('<script src="./js/app.js" defer></script>', '<script src="./js/app.min.js" defer></script>');
+  .replace(
+    /<link rel="stylesheet" href="\.\/css\/style\.css">\s*<link rel="stylesheet" href="\.\/css\/components\.css">\s*<link rel="stylesheet" href="\.\/css\/responsive\.css">/,
+    `<link rel="stylesheet" href="./css/${cssFile}">`
+  )
+  .replace(
+    '<script src="./js/app.js" defer></script>',
+    `<script src="./js/${jsFile}" defer></script>`
+  );
 fs.writeFileSync(path.join(dist, "index.html"), minifyHtml(html));
 
 const report = {
   html: "dist/index.html",
-  css: "dist/css/main.min.css",
-  js: "dist/js/app.min.js",
+  css: `dist/css/${cssFile}`,
+  js: `dist/js/${jsFile}`,
   assets: "dist/assets",
 };
 

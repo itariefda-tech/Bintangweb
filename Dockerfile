@@ -23,13 +23,25 @@ RUN rm /etc/nginx/conf.d/default.conf && \
       '    root /usr/share/nginx/html;' \
       '    index index.html;' \
       '' \
+      '    gzip on;' \
+      '    gzip_vary on;' \
+      '    gzip_min_length 1024;' \
+      '    gzip_types text/plain text/css application/javascript application/json application/xml image/svg+xml;' \
+      '' \
       '    location / {' \
+      '        add_header Cache-Control "no-cache";' \
       '        try_files $uri $uri/ /index.html;' \
       '    }' \
       '' \
-      '    location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|webp|ico|mp3|woff2?)$ {' \
-      '        expires 1h;' \
-      '        add_header Cache-Control "public, max-age=3600";' \
+      '    location ~* \.[0-9a-f]{12}\.min\.(?:css|js)$ {' \
+      '        expires 1y;' \
+      '        add_header Cache-Control "public, max-age=31536000, immutable";' \
+      '        try_files $uri =404;' \
+      '    }' \
+      '' \
+      '    location ~* \.(?:jpg|jpeg|gif|png|svg|webp|ico|mp3|woff2?)$ {' \
+      '        expires 30d;' \
+      '        add_header Cache-Control "public, max-age=2592000";' \
       '        try_files $uri =404;' \
       '    }' \
       '' \

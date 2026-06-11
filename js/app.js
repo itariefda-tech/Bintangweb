@@ -3,6 +3,19 @@ const mobileMenu = document.querySelector("[data-mobile-menu]");
 const mobileLinks = document.querySelectorAll(".mobile-nav a, .mobile-menu .button");
 const siteHeader = document.querySelector("[data-site-header]");
 
+function frameThrottle(callback) {
+  let frameId = 0;
+
+  return (...args) => {
+    if (frameId) return;
+
+    frameId = window.requestAnimationFrame(() => {
+      frameId = 0;
+      callback(...args);
+    });
+  };
+}
+
 function setMenuState(isOpen) {
   if (!menuToggle || !mobileMenu) return;
 
@@ -27,18 +40,21 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-window.addEventListener("resize", () => {
+const updateResponsiveMenu = frameThrottle(() => {
   if (window.matchMedia("(min-width: 1024px)").matches) {
     setMenuState(false);
   }
 });
+window.addEventListener("resize", updateResponsiveMenu, { passive: true });
 
 function updateHeaderState() {
   siteHeader?.classList.toggle("is-scrolled", window.scrollY > 10);
 }
 
 updateHeaderState();
-window.addEventListener("scroll", updateHeaderState, { passive: true });
+window.addEventListener("scroll", frameThrottle(updateHeaderState), {
+  passive: true,
+});
 
 const viewportSections = document.querySelectorAll(
   "main > .section:not(.hero-section):not(.cta-section)"
@@ -93,12 +109,13 @@ function fitDesktopSections() {
 }
 
 fitDesktopSections();
-document.fonts?.ready.then(fitDesktopSections);
-window.addEventListener("load", fitDesktopSections);
-window.addEventListener("resize", fitDesktopSections);
+const scheduleDesktopSectionFit = frameThrottle(fitDesktopSections);
+document.fonts?.ready.then(scheduleDesktopSectionFit);
+window.addEventListener("load", scheduleDesktopSectionFit);
+window.addEventListener("resize", scheduleDesktopSectionFit, { passive: true });
 
 if (siteHeader && "ResizeObserver" in window) {
-  new ResizeObserver(fitDesktopSections).observe(siteHeader);
+  new ResizeObserver(scheduleDesktopSectionFit).observe(siteHeader);
 }
 
 const revealItems = document.querySelectorAll(
@@ -307,11 +324,17 @@ serviceCarousels.forEach((carousel) => {
   carousel.addEventListener("focusout", () => resumeAutoSlide(1500));
   track.addEventListener("pointerdown", pauseAutoSlide);
   track.addEventListener("pointerup", () => resumeAutoSlide(5000));
-  track.addEventListener("scroll", syncIndexFromScroll, { passive: true });
+  track.addEventListener("scroll", frameThrottle(syncIndexFromScroll), {
+    passive: true,
+  });
 
   document.addEventListener("visibilitychange", startAutoSlide);
   prefersReducedMotion.addEventListener?.("change", startAutoSlide);
-  window.addEventListener("resize", () => goToCard(currentIndex, "auto"));
+  window.addEventListener(
+    "resize",
+    frameThrottle(() => goToCard(currentIndex, "auto")),
+    { passive: true }
+  );
 
   updateCurrentLabel();
   moveDecorativeOrb();

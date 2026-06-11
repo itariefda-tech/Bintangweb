@@ -295,24 +295,46 @@
 }
 
 @media (max-width: 640px) {
+  .site-header,
+  .mobile-menu,
+  .glass-card,
+  .about-card,
+  .reason-card,
+  .why-proof span,
+  .process-section .eyebrow,
+  .process-grid,
+  .cta-panel {
+    backdrop-filter: none;
+  }
+
+  .site-header {
+    background-color: rgba(231, 241, 246, 0.96);
+    box-shadow: 0 8px 22px rgba(31, 68, 96, 0.12);
+  }
+
+  .site-header.is-scrolled {
+    background-color: rgba(231, 241, 246, 0.98);
+    box-shadow: 0 10px 26px rgba(31, 68, 96, 0.16);
+  }
+
+  .mobile-menu {
+    background-color: rgba(226, 239, 246, 0.98);
+  }
+
   .hero-section {
     padding: 82px 0 52px;
     background-position: 58% top;
   }
 
   .hero-energy-field {
-    opacity: 0.7;
+    display: none;
   }
 
-  .hero-spark-four,
-  .hero-spark-five,
-  .hero-spark-eight,
-  .hero-spark-ten,
-  .hero-spark-eleven,
-  .hero-bolt-two,
-  .hero-bolt-three,
-  .hero-bolt-six,
-  .hero-pulse-two {
+  .visual-core {
+    animation: none;
+  }
+
+  .service-detail-orb {
     display: none;
   }
 
