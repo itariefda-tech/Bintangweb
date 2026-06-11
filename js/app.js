@@ -102,7 +102,7 @@ if (siteHeader && "ResizeObserver" in window) {
 }
 
 const revealItems = document.querySelectorAll(
-  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-audio, .process-step, .cta-panel"
+  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-step, .cta-panel"
 );
 
 if (revealItems.length && "IntersectionObserver" in window) {
@@ -123,109 +123,61 @@ if (revealItems.length && "IntersectionObserver" in window) {
   revealItems.forEach((item) => revealObserver.observe(item));
 }
 
-const processAudioPanel = document.querySelector("[data-process-audio]");
+const processAudio = document.querySelector("[data-process-audio]");
 
-if (processAudioPanel) {
-  const audio = processAudioPanel.querySelector("[data-process-audio-source]");
-  const toggle = processAudioPanel.querySelector("[data-process-audio-toggle]");
-  const status = processAudioPanel.querySelector("[data-process-audio-status]");
-  const time = processAudioPanel.querySelector("[data-process-audio-time]");
-  const progress = processAudioPanel.querySelector("[data-process-audio-progress]");
-  const progressFill = processAudioPanel.querySelector(
-    "[data-process-audio-progress-fill]"
-  );
-  const processSection = processAudioPanel.closest(".process-section");
+if (processAudio) {
+  const processSection = processAudio.closest(".process-section");
   const previewDuration = 60;
+  let processIsVisible = false;
 
-  function formatAudioTime(seconds) {
-    const safeSeconds = Math.max(0, Math.min(previewDuration, seconds));
-    const minutes = Math.floor(safeSeconds / 60);
-    const remainingSeconds = Math.floor(safeSeconds % 60);
-    return `${String(minutes).padStart(2, "0")}:${String(
-      remainingSeconds
-    ).padStart(2, "0")}`;
-  }
-
-  function updateProcessAudio() {
-    if (!audio) return;
-
-    const currentTime = Math.min(audio.currentTime, previewDuration);
-    const percentage = (currentTime / previewDuration) * 100;
-    const isPlaying = !audio.paused && currentTime < previewDuration;
-
-    processAudioPanel.classList.toggle("is-playing", isPlaying);
-    toggle?.setAttribute("aria-pressed", String(isPlaying));
-    toggle?.setAttribute(
-      "aria-label",
-      isPlaying ? "Jeda soundtrack Process" : "Putar soundtrack Process"
-    );
-
-    if (status) {
-      status.textContent = isPlaying
-        ? "Now playing: 60-second Process soundscape"
-        : currentTime >= previewDuration
-          ? "Preview finished - play again"
-          : "Play the first 60 seconds";
-    }
-
-    if (time) {
-      time.textContent = `${formatAudioTime(currentTime)} / 01:00`;
-    }
-
-    if (progressFill) {
-      progressFill.style.width = `${percentage}%`;
-    }
-
-    progress?.setAttribute("aria-valuenow", String(Math.floor(currentTime)));
-  }
-
-  function stopAtPreviewEnd() {
-    if (!audio || audio.currentTime < previewDuration) return;
-    audio.pause();
-    audio.currentTime = previewDuration;
-    updateProcessAudio();
-  }
-
-  toggle?.addEventListener("click", async () => {
-    if (!audio) return;
-
-    if (!audio.paused) {
-      audio.pause();
+  async function startProcessAudio() {
+    if (
+      !processIsVisible ||
+      processAudio.currentTime >= previewDuration ||
+      !processAudio.paused
+    ) {
       return;
     }
 
-    if (audio.currentTime >= previewDuration - 0.05) {
-      audio.currentTime = 0;
-    }
-
     try {
-      await audio.play();
+      await processAudio.play();
     } catch {
-      if (status) status.textContent = "Audio could not be played";
+      // Browsers may require a user gesture before allowing sound.
     }
-  });
+  }
 
-  audio?.addEventListener("play", updateProcessAudio);
-  audio?.addEventListener("pause", updateProcessAudio);
-  audio?.addEventListener("timeupdate", () => {
-    stopAtPreviewEnd();
-    updateProcessAudio();
+  processAudio.addEventListener("timeupdate", () => {
+    if (processAudio.currentTime >= previewDuration) {
+      processAudio.pause();
+      processAudio.currentTime = previewDuration;
+    }
   });
 
   if (processSection && "IntersectionObserver" in window) {
     const processAudioObserver = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting && audio && !audio.paused) {
-          audio.pause();
+        processIsVisible = entry.isIntersecting;
+
+        if (processIsVisible) {
+          startProcessAudio();
+        } else if (!processAudio.paused) {
+          processAudio.pause();
         }
       },
-      { threshold: 0.08 }
+      { threshold: 0.35 }
     );
 
     processAudioObserver.observe(processSection);
+  } else {
+    processIsVisible = true;
+    startProcessAudio();
   }
 
-  updateProcessAudio();
+  ["pointerdown", "touchstart", "keydown"].forEach((eventName) => {
+    document.addEventListener(eventName, startProcessAudio, {
+      passive: true,
+    });
+  });
 }
 
 const serviceCarousels = document.querySelectorAll("[data-service-carousel]");
@@ -237,6 +189,8 @@ serviceCarousels.forEach((carousel) => {
   const previousButton = carousel.querySelector("[data-service-carousel-prev]");
   const nextButton = carousel.querySelector("[data-service-carousel-next]");
   const currentLabel = carousel.querySelector("[data-service-carousel-current]");
+  const serviceDetailSection = carousel.closest(".service-detail-section");
+  const orb = serviceDetailSection?.querySelector("[data-service-detail-orb]");
 
   if (!track || cards.length < 2) return;
 
@@ -251,6 +205,36 @@ serviceCarousels.forEach((carousel) => {
     }
   }
 
+  function randomBetween(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function moveDecorativeOrb() {
+    if (!orb) return;
+
+    orb.style.setProperty(
+      "--orb-x",
+      `${randomBetween(3, 97).toFixed(2)}%`
+    );
+    orb.style.setProperty(
+      "--orb-y",
+      `${randomBetween(6, 94).toFixed(2)}%`
+    );
+    orb.style.setProperty(
+      "--orb-drift-x",
+      `${randomBetween(-12, 12).toFixed(2)}px`
+    );
+    orb.style.setProperty(
+      "--orb-drift-y",
+      `${randomBetween(-11, 11).toFixed(2)}px`
+    );
+    orb.style.setProperty("--orb-scale", randomBetween(0.88, 1.12).toFixed(2));
+    orb.style.setProperty(
+      "--orb-duration",
+      `${randomBetween(3.8, 6.2).toFixed(2)}s`
+    );
+  }
+
   function goToCard(index, behavior = "smooth") {
     currentIndex = (index + cards.length) % cards.length;
     track.scrollTo({
@@ -258,6 +242,7 @@ serviceCarousels.forEach((carousel) => {
       behavior,
     });
     updateCurrentLabel();
+    moveDecorativeOrb();
   }
 
   function stopAutoSlide() {
@@ -299,8 +284,11 @@ serviceCarousels.forEach((carousel) => {
       }
     });
 
-    currentIndex = closestIndex;
-    updateCurrentLabel();
+    if (closestIndex !== currentIndex) {
+      currentIndex = closestIndex;
+      updateCurrentLabel();
+      moveDecorativeOrb();
+    }
   }
 
   previousButton?.addEventListener("click", () => {
@@ -326,5 +314,6 @@ serviceCarousels.forEach((carousel) => {
   window.addEventListener("resize", () => goToCard(currentIndex, "auto"));
 
   updateCurrentLabel();
+  moveDecorativeOrb();
   startAutoSlide();
 });

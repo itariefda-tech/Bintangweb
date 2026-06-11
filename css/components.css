@@ -427,6 +427,336 @@
   content: none;
 }
 
+.hero-energy-field {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.hero-energy-field::before,
+.hero-energy-field::after,
+.hero-pulse {
+  content: "";
+  position: absolute;
+  width: var(--pulse-size, clamp(70px, 10vw, 145px));
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  filter: blur(3px);
+  background:
+    radial-gradient(circle, rgba(255, 247, 203, 0.88), rgba(241, 183, 65, 0.28) 24%, transparent 68%);
+  animation: hero-energy-pulse 7.2s ease-in-out infinite;
+}
+
+.hero-energy-field::before {
+  top: 18%;
+  right: 13%;
+  width: clamp(90px, 13vw, 190px);
+}
+
+.hero-energy-field::after {
+  right: 32%;
+  bottom: 8%;
+  animation-delay: -3.4s;
+}
+
+.hero-pulse-one {
+  top: 44%;
+  right: 4%;
+  --pulse-size: clamp(80px, 11vw, 160px);
+  animation-delay: -5.1s;
+}
+
+.hero-pulse-two {
+  top: 6%;
+  right: 39%;
+  --pulse-size: clamp(55px, 8vw, 120px);
+  animation-delay: -1.9s;
+}
+
+.hero-spark {
+  --spark-size: 5px;
+  --spark-delay: 0s;
+  --spark-duration: 4.8s;
+  position: absolute;
+  width: var(--spark-size);
+  height: var(--spark-size);
+  border-radius: 50%;
+  opacity: 0;
+  background: #fff8d5;
+  box-shadow:
+    0 0 4px #fff,
+    0 0 12px rgba(255, 225, 134, 0.96),
+    0 0 28px rgba(218, 145, 43, 0.68);
+  animation: hero-spark-flash var(--spark-duration) var(--spark-delay) ease-in-out infinite;
+}
+
+.hero-spark::before,
+.hero-spark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 249, 219, 0.92), transparent);
+  transform: translate(-50%, -50%);
+}
+
+.hero-spark::before {
+  width: calc(var(--spark-size) * 7);
+  height: 1px;
+}
+
+.hero-spark::after {
+  width: 1px;
+  height: calc(var(--spark-size) * 7);
+  background: linear-gradient(180deg, transparent, rgba(255, 249, 219, 0.92), transparent);
+}
+
+.hero-spark-one {
+  top: 17%;
+  right: 8%;
+  --spark-size: 6px;
+  --spark-delay: -0.8s;
+}
+
+.hero-spark-two {
+  top: 31%;
+  right: 28%;
+  --spark-size: 4px;
+  --spark-delay: -3.2s;
+  --spark-duration: 5.6s;
+}
+
+.hero-spark-three {
+  right: 17%;
+  bottom: 22%;
+  --spark-size: 7px;
+  --spark-delay: -1.7s;
+  --spark-duration: 6.2s;
+}
+
+.hero-spark-four {
+  top: 12%;
+  right: 46%;
+  --spark-size: 3px;
+  --spark-delay: -4.1s;
+  --spark-duration: 5.2s;
+}
+
+.hero-spark-five {
+  right: 43%;
+  bottom: 12%;
+  --spark-size: 5px;
+  --spark-delay: -2.4s;
+  --spark-duration: 7s;
+}
+
+.hero-spark-six {
+  top: 48%;
+  right: 5%;
+  --spark-size: 3px;
+  --spark-delay: -5.1s;
+  --spark-duration: 6.6s;
+}
+
+.hero-spark-seven {
+  top: 8%;
+  right: 21%;
+  --spark-size: 5px;
+  --spark-delay: -6.3s;
+  --spark-duration: 7.4s;
+}
+
+.hero-spark-eight {
+  top: 62%;
+  right: 37%;
+  --spark-size: 4px;
+  --spark-delay: -2.9s;
+  --spark-duration: 5.9s;
+}
+
+.hero-spark-nine {
+  top: 76%;
+  right: 8%;
+  --spark-size: 6px;
+  --spark-delay: -4.8s;
+  --spark-duration: 6.8s;
+}
+
+.hero-spark-ten {
+  top: 42%;
+  right: 44%;
+  --spark-size: 3px;
+  --spark-delay: -1.1s;
+  --spark-duration: 5.4s;
+}
+
+.hero-spark-eleven {
+  top: 88%;
+  right: 26%;
+  --spark-size: 4px;
+  --spark-delay: -5.7s;
+  --spark-duration: 7.2s;
+}
+
+.hero-spark-twelve {
+  top: 27%;
+  right: 2%;
+  --spark-size: 5px;
+  --spark-delay: -3.8s;
+  --spark-duration: 6.4s;
+}
+
+.hero-bolt {
+  --bolt-delay: 0s;
+  position: absolute;
+  width: clamp(58px, 7vw, 110px);
+  height: 2px;
+  opacity: 0;
+  filter: drop-shadow(0 0 5px rgba(255, 228, 145, 0.86));
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 5%,
+      rgba(255, 250, 222, 0.94) 5% 21%,
+      transparent 21% 27%,
+      rgba(232, 169, 58, 0.9) 27% 58%,
+      transparent 58% 65%,
+      rgba(255, 249, 214, 0.92) 65% 100%
+    );
+  clip-path: polygon(0 38%, 22% 22%, 39% 64%, 58% 28%, 75% 72%, 100% 42%, 100% 67%, 75% 95%, 58% 52%, 39% 88%, 22% 48%, 0 68%);
+  animation: hero-bolt-strike 8.4s var(--bolt-delay) steps(1, end) infinite;
+}
+
+.hero-bolt-one {
+  top: 38%;
+  right: 9%;
+  rotate: -21deg;
+  --bolt-delay: -1.2s;
+}
+
+.hero-bolt-two {
+  right: 31%;
+  bottom: 19%;
+  rotate: 14deg;
+  --bolt-delay: -5.6s;
+}
+
+.hero-bolt-three {
+  top: 20%;
+  right: 40%;
+  width: clamp(42px, 5vw, 76px);
+  rotate: 39deg;
+  --bolt-delay: -3.7s;
+}
+
+.hero-bolt-four {
+  top: 9%;
+  right: 20%;
+  width: clamp(48px, 6vw, 88px);
+  rotate: 18deg;
+  --bolt-delay: -7.1s;
+}
+
+.hero-bolt-five {
+  right: 4%;
+  bottom: 10%;
+  rotate: -38deg;
+  --bolt-delay: -2.8s;
+}
+
+.hero-bolt-six {
+  top: 58%;
+  right: 39%;
+  width: clamp(44px, 5.5vw, 82px);
+  rotate: -8deg;
+  --bolt-delay: -6.4s;
+}
+
+@keyframes hero-spark-flash {
+  0%,
+  76%,
+  100% {
+    opacity: 0;
+    scale: 0.45;
+  }
+
+  79% {
+    opacity: 0.34;
+    scale: 0.8;
+  }
+
+  81% {
+    opacity: 1;
+    scale: 1.35;
+  }
+
+  84% {
+    opacity: 0.16;
+    scale: 0.72;
+  }
+
+  88% {
+    opacity: 0.72;
+    scale: 1;
+  }
+
+  92% {
+    opacity: 0;
+    scale: 1.6;
+  }
+}
+
+@keyframes hero-bolt-strike {
+  0%,
+  68%,
+  100% {
+    opacity: 0;
+    transform: scaleX(0.45);
+  }
+
+  69% {
+    opacity: 0.85;
+    transform: scaleX(1);
+  }
+
+  70% {
+    opacity: 0.12;
+  }
+
+  71% {
+    opacity: 1;
+    transform: scaleX(0.88);
+  }
+
+  73% {
+    opacity: 0;
+    transform: scaleX(1.08);
+  }
+}
+
+@keyframes hero-energy-pulse {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  64% {
+    opacity: 0.28;
+  }
+
+  72% {
+    opacity: 0.08;
+    transform: scale(1.18);
+  }
+}
+
 .hero-grid,
 .services-grid,
 .highlight-grid,
@@ -1143,15 +1473,76 @@
 }
 
 .service-detail-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background:
     linear-gradient(180deg, rgba(255, 252, 246, 0.34), rgba(220, 239, 247, 0.26)),
     transparent;
+}
+
+.service-detail-section > .container {
+  position: relative;
+  z-index: 1;
 }
 
 .service-detail-carousel {
   display: grid;
   min-width: 0;
   gap: var(--space-md);
+}
+
+.service-detail-orb {
+  --orb-x: 92%;
+  --orb-y: 8%;
+  --orb-drift-x: -8px;
+  --orb-drift-y: 10px;
+  --orb-scale: 1;
+  position: absolute;
+  top: var(--orb-y);
+  left: var(--orb-x);
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 226, 154, 0.72);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, #fff1bd 0 8%, #e3ad4b 30%, #b86f2c 62%, #713814 100%);
+  box-shadow:
+    0 5px 14px rgba(103, 51, 17, 0.28),
+    0 0 22px rgba(215, 153, 50, 0.26),
+    inset -5px -6px 9px rgba(82, 35, 10, 0.28),
+    inset 4px 4px 7px rgba(255, 239, 189, 0.42);
+  transition:
+    top 1.65s cubic-bezier(0.22, 1, 0.36, 1),
+    left 1.65s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: service-orb-drift var(--orb-duration, 4.8s) ease-in-out infinite alternate;
+  will-change: top, left, transform;
+}
+
+.service-detail-orb::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(201, 154, 58, 0.2);
+  border-radius: inherit;
+  box-shadow: 0 0 14px rgba(201, 154, 58, 0.12);
+}
+
+@keyframes service-orb-drift {
+  from {
+    transform: translate(-50%, -50%) scale(var(--orb-scale));
+  }
+
+  to {
+    transform:
+      translate(
+        calc(-50% + var(--orb-drift-x)),
+        calc(-50% + var(--orb-drift-y))
+      )
+      scale(calc(var(--orb-scale) + 0.08));
+  }
 }
 
 .service-detail-list {
@@ -1634,115 +2025,7 @@
   backdrop-filter: blur(10px);
 }
 
-.process-audio {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  width: min(100%, 620px);
-  margin: calc(var(--space-lg) * -0.35) auto var(--space-lg);
-  padding: 0.7rem 0.9rem;
-  align-items: center;
-  gap: 0.85rem;
-  border: 1px solid rgba(255, 217, 141, 0.34);
-  border-radius: 999px;
-  color: var(--white-soft);
-  background:
-    linear-gradient(110deg, rgba(8, 19, 31, 0.76), rgba(22, 38, 53, 0.46));
-  box-shadow:
-    0 18px 55px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-}
-
-.process-audio-toggle {
-  position: relative;
-  display: grid;
-  width: 2.85rem;
-  height: 2.85rem;
-  padding: 0;
-  place-items: center;
-  border: 1px solid rgba(255, 236, 188, 0.72);
-  border-radius: 50%;
-  color: #241507;
-  background: linear-gradient(135deg, #fff0c2, #d89d32);
-  box-shadow: 0 0 24px rgba(240, 179, 67, 0.24);
-  cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.process-audio-toggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 32px rgba(240, 179, 67, 0.38);
-}
-
-.process-audio-toggle:focus-visible {
-  outline: 3px solid rgba(255, 232, 174, 0.42);
-  outline-offset: 3px;
-}
-
-.process-audio-icon {
-  width: 0;
-  height: 0;
-  margin-left: 0.18rem;
-  border-top: 0.4rem solid transparent;
-  border-bottom: 0.4rem solid transparent;
-  border-left: 0.62rem solid currentColor;
-}
-
-.process-audio.is-playing .process-audio-icon {
-  width: 0.62rem;
-  height: 0.78rem;
-  margin-left: 0;
-  border: 0;
-  border-right: 0.2rem solid currentColor;
-  border-left: 0.2rem solid currentColor;
-}
-
-.process-audio-copy {
-  display: grid;
-  min-width: 0;
-  gap: 0.15rem;
-}
-
-.process-audio-kicker {
-  color: #ffd98d;
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.process-audio-copy strong {
-  overflow: hidden;
-  font-size: 0.82rem;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.process-audio-progress {
-  height: 3px;
-  margin-top: 0.28rem;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-}
-
-.process-audio-progress span {
-  display: block;
-  width: 0;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #d89d32, #fff0c2);
-}
-
-.process-audio-time {
-  color: rgba(242, 247, 252, 0.68);
-  font-size: 0.72rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.process-audio audio {
+.process-section audio {
   display: none;
 }
 

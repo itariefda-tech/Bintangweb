@@ -126,6 +126,28 @@
         <img class="hero-decor hero-decor-cloud" src="./assets/decorations/cloud-glow.svg" width="220" height="140" alt="" aria-hidden="true" decoding="async">
         <img class="hero-decor hero-decor-node" src="./assets/decorations/network-node.svg" width="260" height="180" alt="" aria-hidden="true" decoding="async">
         <img class="hero-decor hero-decor-orb" src="./assets/decorations/hero-orb.svg" width="180" height="180" alt="" aria-hidden="true" decoding="async">
+        <div class="hero-energy-field" aria-hidden="true">
+          <span class="hero-spark hero-spark-one"></span>
+          <span class="hero-spark hero-spark-two"></span>
+          <span class="hero-spark hero-spark-three"></span>
+          <span class="hero-spark hero-spark-four"></span>
+          <span class="hero-spark hero-spark-five"></span>
+          <span class="hero-spark hero-spark-six"></span>
+          <span class="hero-spark hero-spark-seven"></span>
+          <span class="hero-spark hero-spark-eight"></span>
+          <span class="hero-spark hero-spark-nine"></span>
+          <span class="hero-spark hero-spark-ten"></span>
+          <span class="hero-spark hero-spark-eleven"></span>
+          <span class="hero-spark hero-spark-twelve"></span>
+          <span class="hero-bolt hero-bolt-one"></span>
+          <span class="hero-bolt hero-bolt-two"></span>
+          <span class="hero-bolt hero-bolt-three"></span>
+          <span class="hero-bolt hero-bolt-four"></span>
+          <span class="hero-bolt hero-bolt-five"></span>
+          <span class="hero-bolt hero-bolt-six"></span>
+          <span class="hero-pulse hero-pulse-one"></span>
+          <span class="hero-pulse hero-pulse-two"></span>
+        </div>
 
         <div class="container hero-grid">
           <div class="hero-copy hero-content section-content">
@@ -373,6 +395,7 @@
       </section>
 
       <section class="section service-detail-section" id="service-detail">
+        <span class="service-detail-orb" aria-hidden="true" data-service-detail-orb></span>
         <div class="container">
           <div class="section-header centered">
             <p class="eyebrow">Detailed Services</p>
@@ -679,36 +702,9 @@
             <p class="eyebrow">Process</p>
             <h2>From consultation to implementation.</h2>
           </div>
-          <div class="process-audio" data-process-audio>
-            <button
-              class="process-audio-toggle"
-              type="button"
-              aria-label="Putar soundtrack Process"
-              aria-pressed="false"
-              data-process-audio-toggle
-            >
-              <span class="process-audio-icon" aria-hidden="true"></span>
-            </button>
-            <div class="process-audio-copy">
-              <span class="process-audio-kicker">Process Soundscape</span>
-              <strong data-process-audio-status>Play the first 60 seconds</strong>
-              <div
-                class="process-audio-progress"
-                role="progressbar"
-                aria-label="Progress soundtrack"
-                aria-valuemin="0"
-                aria-valuemax="60"
-                aria-valuenow="0"
-                data-process-audio-progress
-              >
-                <span data-process-audio-progress-fill></span>
-              </div>
-            </div>
-            <span class="process-audio-time" data-process-audio-time>00:00 / 01:00</span>
-            <audio preload="metadata" data-process-audio-source>
-              <source src="./assets/audio/ost-arcane.mp3" type="audio/mpeg">
-            </audio>
-          </div>
+          <audio preload="auto" data-process-audio aria-hidden="true">
+            <source src="./assets/audio/ost-arcane.mp3" type="audio/mpeg">
+          </audio>
           <div class="process-grid">
             <article class="process-step">
               <span>1</span>
