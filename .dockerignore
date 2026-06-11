@@ -1,0 +1,9 @@
+.git
+.gitignore
+.dockerignore
+deploy.sh
+dist
+docs
+*.md
+__pycache__
+*.pyc

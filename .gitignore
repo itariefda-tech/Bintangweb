@@ -1,0 +1,2 @@
+# Keep the server-specific deployment script local to each environment.
+deploy.sh
