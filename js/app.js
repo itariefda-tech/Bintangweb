@@ -151,7 +151,7 @@ window.addEventListener("scroll", frameThrottle(updateHeaderState), {
 });
 
 const viewportSections = document.querySelectorAll(
-  "main > .section:not(.hero-section):not(.cta-section):not(.proof-section)"
+  ".why-section, .process-section"
 );
 
 function fitDesktopSections() {
