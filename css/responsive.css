@@ -681,13 +681,8 @@
   }
 
   .about-card {
-    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 76px;
     gap: 0.8rem;
-  }
-
-  .about-card-icon {
-    width: 42px;
-    border-radius: 14px;
   }
 }
 
@@ -718,6 +713,18 @@
   .highlight-section > .container {
     width: min(100% - (var(--container-gutter) * 2), var(--container-max));
     max-width: 100%;
+  }
+
+  .about-section > .container {
+    height: 100%;
+  }
+
+  .services-section > .container {
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
   }
 
   .problems-section .section-header,
@@ -787,14 +794,16 @@
   }
 
   .about-grid {
-    grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+    grid-template-columns: minmax(250px, 0.68fr) minmax(0, 1.32fr);
     grid-template-areas: "copy story";
-    gap: clamp(1.5rem, 4vw, 3.5rem);
-    align-items: center;
+    height: 100%;
+    gap: clamp(1.25rem, 3vw, 3rem);
+    align-items: stretch;
   }
 
   .about-copy {
     grid-area: copy;
+    align-content: center;
     gap: clamp(0.75rem, 1.5svh, 1rem);
   }
 
@@ -810,24 +819,32 @@
   .about-story-track {
     display: grid;
     grid-area: story;
-    grid-template-columns: minmax(0, 1fr) minmax(210px, 0.58fr);
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
     gap: clamp(0.8rem, 1.6vw, 1.25rem);
     align-items: stretch;
   }
 
   .about-cards {
     grid-area: auto;
+    min-height: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: clamp(0.65rem, 1.3svh, 0.9rem);
   }
 
   .about-card {
-    gap: 0.55rem 0.7rem;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) clamp(72px, 8vw, 112px);
+    gap: 0.5rem 0.7rem;
     padding: clamp(0.8rem, 1.35vw, 1.1rem);
   }
 
-  .about-card-icon {
-    width: clamp(38px, 3.5vw, 46px);
+  .about-card-silhouette {
+    min-height: 0;
+    max-height: none;
   }
 
   .about-card h3 {
@@ -841,21 +858,53 @@
 
   .about-quote {
     grid-area: auto;
-    align-content: center;
-    padding: clamp(1rem, 1.8vw, 1.4rem);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.8rem, 1.5vw, 1.15rem);
+  }
+
+  .about-quote-mark {
+    height: 1.5rem;
+    font-size: 3.5rem;
   }
 
   .about-quote p {
-    font-size: clamp(1rem, 1.45vw, 1.25rem);
+    font-size: clamp(0.92rem, 1.2vw, 1.12rem);
+  }
+
+  .about-quote footer {
+    max-width: 20ch;
+    text-align: right;
+  }
+
+  .services-section .section-header {
+    width: 100%;
+    max-width: none;
+    justify-items: center;
+  }
+
+  .services-section .section-header h2,
+  .services-section .section-header > p:not(.eyebrow) {
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  .services-section .section-header > p:not(.eyebrow) {
+    font-size: clamp(0.78rem, 1.15vw, 1rem);
   }
 
   .services-grid {
+    min-height: 0;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: clamp(0.7rem, 1.4svh, 1rem);
   }
 
   .service-card {
-    min-height: clamp(180px, 25svh, 220px);
+    height: 100%;
+    min-height: 0;
+    align-content: center;
     gap: 0.55rem;
     padding: clamp(1rem, 1.6vw, 1.35rem);
   }
@@ -1088,6 +1137,113 @@
   }
 }
 
+@media (min-width: 900px) and (max-height: 700px) {
+  .about-section {
+    padding-block: clamp(0.75rem, 2svh, 1.15rem);
+  }
+
+  .about-grid {
+    gap: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  .about-copy h2 {
+    font-size: clamp(1.7rem, min(3.2vw, 5.2svh), 2.65rem);
+  }
+
+  .about-intro {
+    font-size: clamp(0.82rem, 1vw, 0.94rem);
+    line-height: 1.48;
+  }
+
+  .about-story-track {
+    gap: clamp(0.55rem, 1.2svh, 0.8rem);
+  }
+
+  .about-cards {
+    gap: clamp(0.5rem, 1svh, 0.7rem);
+  }
+
+  .about-card {
+    grid-template-columns: minmax(0, 1fr) clamp(58px, 7vw, 86px);
+    gap: 0.35rem 0.55rem;
+    padding: clamp(0.62rem, 1.1vw, 0.85rem);
+  }
+
+  .about-card h3 {
+    font-size: clamp(0.84rem, 1.05vw, 0.98rem);
+  }
+
+  .about-card > p {
+    font-size: clamp(0.7rem, 0.82vw, 0.8rem);
+    line-height: 1.38;
+  }
+
+  .about-quote {
+    gap: 0.65rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .about-quote-mark {
+    height: 1.1rem;
+    font-size: 2.8rem;
+  }
+
+  .about-quote p {
+    font-size: clamp(0.82rem, 1vw, 0.98rem);
+    line-height: 1.32;
+  }
+
+  .about-quote footer {
+    font-size: 0.65rem;
+  }
+
+  .services-section {
+    padding-block: clamp(0.65rem, 1.8svh, 1rem);
+  }
+
+  .services-section .section-header {
+    gap: 0.35rem;
+    margin-bottom: clamp(0.5rem, 1.2svh, 0.75rem);
+  }
+
+  .services-section .section-header h2 {
+    font-size: clamp(1.6rem, min(3vw, 4.8svh), 2.35rem);
+  }
+
+  .services-section .section-header > p:not(.eyebrow) {
+    font-size: clamp(0.72rem, 1vw, 0.86rem);
+  }
+
+  .services-grid {
+    gap: clamp(0.45rem, 1svh, 0.65rem);
+  }
+
+  .service-card {
+    gap: 0.35rem;
+    padding: clamp(0.65rem, 1.1vw, 0.9rem);
+  }
+
+  .service-icon {
+    width: clamp(36px, 4.5svh, 44px);
+    border-radius: 14px;
+    font-size: 0.68rem;
+  }
+
+  .service-kicker {
+    font-size: clamp(0.58rem, 0.7vw, 0.68rem);
+  }
+
+  .service-card h3 {
+    font-size: clamp(0.92rem, 1.15vw, 1.08rem);
+  }
+
+  .service-card p:not(.service-kicker) {
+    font-size: clamp(0.7rem, 0.82vw, 0.8rem);
+    line-height: 1.4;
+  }
+
+}
+
 @media (max-width: 767.98px) {
   :root {
     --mobile-section-padding: 2rem;
@@ -1257,6 +1413,10 @@
   .about-card > p {
     font-size: 0.86rem;
     line-height: 1.55;
+  }
+
+  .about-card-silhouette {
+    max-height: 178px;
   }
 
   .about-quote {
