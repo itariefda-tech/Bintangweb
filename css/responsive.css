@@ -862,37 +862,65 @@
 }
 
 @media (max-width: 767.98px) {
+  :root {
+    --mobile-section-padding: 2rem;
+    --mobile-content-gap: 1rem;
+    --mobile-card-gap: 0.75rem;
+    --mobile-card-padding: 1.15rem;
+  }
+
+  .problems-section,
   .about-section,
   .services-section,
+  .service-detail-section,
   .why-section,
   .highlight-section,
   .process-section,
-  .proof-section {
-    min-height: calc(100svh - 73px);
-    padding-block: 1.5rem;
+  .proof-section,
+  .cta-section {
+    min-height: 0;
+    padding-block: var(--mobile-section-padding);
   }
 
+  .problems-layout,
   .about-grid,
   .why-layout {
     min-width: 0;
-    gap: 1rem;
+    gap: var(--mobile-content-gap);
   }
 
+  .problems-section .container,
   .about-section .container,
   .services-section .container,
+  .service-detail-section .container,
   .why-section .container,
   .highlight-section .container,
   .process-section .container,
-  .proof-section .container {
+  .proof-section .container,
+  .cta-section .container {
     min-width: 0;
     max-width: calc(100% - (var(--container-gutter) * 2));
   }
 
+  .section-header,
   .about-copy,
   .why-intro {
     width: 100%;
     min-width: 0;
     gap: 0.65rem;
+  }
+
+  .problems-section .section-header,
+  .services-section .section-header,
+  .service-detail-section .section-header,
+  .highlight-section .section-header,
+  .process-section .section-header,
+  .proof-section .section-header {
+    margin-bottom: var(--mobile-content-gap);
+  }
+
+  .problems-layout > .section-header {
+    margin-bottom: 0;
   }
 
   .about-copy h2,
@@ -911,13 +939,32 @@
   }
 
   .services-section .section-header,
+  .service-detail-section .section-header,
   .highlight-section .section-header,
   .process-section .section-header,
   .proof-section .section-header {
     width: 100%;
     min-width: 0;
     gap: 0.6rem;
-    margin-bottom: 1rem;
+  }
+
+  .problems-copy,
+  .problem-grid {
+    gap: var(--mobile-card-gap);
+  }
+
+  .problems-copy {
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .problem-card,
+  .problem-closing {
+    padding: var(--mobile-card-padding);
+  }
+
+  .problem-closing {
+    gap: var(--mobile-card-gap);
   }
 
   .about-story-track,
@@ -930,11 +977,11 @@
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    gap: 0.75rem;
+    gap: var(--mobile-card-gap);
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-inline: contain;
-    padding: 0.1rem 1.25rem 0.65rem 0;
+    padding: 0.1rem 1.25rem 0.5rem 0;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -974,7 +1021,7 @@
   .about-card,
   .about-quote {
     min-height: 235px;
-    padding: 1.15rem;
+    padding: var(--mobile-card-padding);
   }
 
   .about-card > p {
@@ -993,7 +1040,7 @@
 
   .service-card {
     min-height: 245px;
-    padding: 1.25rem;
+    padding: var(--mobile-card-padding);
   }
 
   .service-card p:not(.service-kicker) {
@@ -1004,7 +1051,7 @@
   .highlight-card {
     min-height: 210px;
     justify-content: center;
-    padding: 1.25rem;
+    padding: var(--mobile-card-padding);
   }
 
   .why-proof {
@@ -1022,7 +1069,7 @@
   }
 
   .reason-card {
-    padding: 1.15rem;
+    padding: var(--mobile-card-padding);
     align-content: center;
   }
 
@@ -1033,7 +1080,7 @@
 
   .why-path {
     align-content: center;
-    padding: 1.15rem;
+    padding: var(--mobile-card-padding);
   }
 
   .why-path ol {
@@ -1065,7 +1112,7 @@
     align-content: center;
     border: 1px solid rgba(240, 179, 67, 0.38);
     border-radius: var(--radius-xl);
-    padding: 1.35rem;
+    padding: var(--mobile-card-padding);
   }
 
   .process-step:last-child {
@@ -1076,13 +1123,52 @@
     align-items: start;
   }
 
+  .service-detail-carousel {
+    gap: var(--mobile-card-gap);
+  }
+
+  .service-detail-list {
+    gap: var(--mobile-card-gap);
+    padding: 0.1rem 1.25rem 0.5rem 0;
+  }
+
+  .service-detail-list .detail-card {
+    flex-basis: calc(100% - 1.25rem);
+    gap: var(--mobile-content-gap);
+    padding: var(--mobile-card-padding);
+    scroll-snap-align: start;
+  }
+
+  .service-detail-controls {
+    gap: var(--mobile-card-gap);
+    padding-inline: 0.1rem;
+  }
+
+  .cta-panel {
+    gap: var(--mobile-content-gap);
+    padding: var(--mobile-card-padding);
+  }
+
+  .cta-panel > div:first-child {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .cta-panel .eyebrow {
+    margin-bottom: 0;
+  }
+
+  .cta-panel .button-group {
+    gap: var(--mobile-card-gap);
+  }
+
   .proof-dossier,
   .project-film {
     align-self: stretch;
   }
 
   .proof-dossier {
-    padding: 0.75rem;
+    padding: var(--mobile-card-padding);
   }
 
   .proof-tabs {
