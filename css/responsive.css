@@ -1008,12 +1008,17 @@
   }
 
   .service-detail-section .detail-card-head {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.75rem;
   }
 
-  .service-detail-section .detail-card-head .service-icon {
-    width: 52px;
+  .service-detail-section .detail-silhouette {
+    width: clamp(96px, 10vw, 132px);
+    height: clamp(76px, 8vw, 104px);
+  }
+
+  .service-detail-section .detail-silhouette-portrait {
+    width: clamp(64px, 7vw, 88px);
   }
 
   .service-detail-section .detail-card h3 {
@@ -1223,6 +1228,15 @@
     padding: clamp(0.65rem, 1.1vw, 0.9rem);
   }
 
+  .service-silhouette {
+    width: min(38%, 126px);
+    height: min(70%, 116px);
+  }
+
+  .service-silhouette-portrait {
+    width: min(27%, 88px);
+  }
+
   .service-icon {
     width: clamp(36px, 4.5svh, 44px);
     border-radius: 14px;
@@ -1367,7 +1381,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-inline: contain;
-    padding: 0.1rem 1.25rem 0.5rem 0;
+    padding: 0.1rem 0 0.5rem;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -1399,7 +1413,7 @@
   .project-film {
     width: auto;
     min-width: 0;
-    flex: 0 0 calc(100% - 1.25rem);
+    flex: 0 0 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
@@ -1431,6 +1445,21 @@
   .service-card {
     min-height: 245px;
     padding: var(--mobile-card-padding);
+  }
+
+  .service-card > :not(.service-silhouette) {
+    max-width: 60%;
+  }
+
+  .service-silhouette {
+    right: 0.55rem;
+    bottom: 0.65rem;
+    width: min(43%, 150px);
+    height: 68%;
+  }
+
+  .service-silhouette-portrait {
+    width: min(31%, 104px);
   }
 
   .service-card p:not(.service-kicker) {
@@ -1519,14 +1548,62 @@
 
   .service-detail-list {
     gap: var(--mobile-card-gap);
-    padding: 0.1rem 1.25rem 0.5rem 0;
+    padding: 0.1rem 0 0.5rem;
   }
 
   .service-detail-list .detail-card {
-    flex-basis: calc(100% - 1.25rem);
+    flex-basis: 100%;
     gap: var(--mobile-content-gap);
     padding: var(--mobile-card-padding);
     scroll-snap-align: start;
+  }
+
+  .service-detail-list .detail-card-head {
+    grid-template-columns: minmax(0, 1fr) clamp(78px, 25vw, 108px);
+    gap: 0.65rem;
+  }
+
+  .service-detail-list .detail-silhouette {
+    width: 100%;
+    height: 88px;
+  }
+
+  .service-detail-list .detail-silhouette-portrait {
+    width: 72%;
+    justify-self: end;
+  }
+
+  .service-detail-list .feature-list {
+    grid-auto-rows: 2.75rem;
+    max-height: calc((2.75rem * 3) + (var(--space-sm) * 2));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.35rem;
+    scrollbar-color: rgba(201, 154, 58, 0.62) rgba(75, 46, 22, 0.08);
+    scrollbar-width: thin;
+    touch-action: pan-y;
+  }
+
+  .service-detail-list .feature-list::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .service-detail-list .feature-list::-webkit-scrollbar-track {
+    border-radius: var(--radius-pill);
+    background: rgba(75, 46, 22, 0.08);
+  }
+
+  .service-detail-list .feature-list::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-pill);
+    background: rgba(201, 154, 58, 0.62);
+  }
+
+  .service-detail-list .feature-list li {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    padding-block: 0.45rem;
   }
 
   .service-detail-controls {

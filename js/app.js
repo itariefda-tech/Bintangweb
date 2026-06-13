@@ -500,6 +500,7 @@ serviceCarousels.forEach((carousel) => {
   let autoSlideTimer;
   let resumeTimer;
   let isPaused = false;
+  let isTouchStopped = false;
 
   function updateCurrentLabel() {
     if (currentLabel) {
@@ -553,7 +554,12 @@ serviceCarousels.forEach((carousel) => {
 
   function startAutoSlide() {
     stopAutoSlide();
-    if (isPaused || prefersReducedMotion.matches || document.hidden) return;
+    if (
+      isPaused ||
+      isTouchStopped ||
+      prefersReducedMotion.matches ||
+      document.hidden
+    ) return;
     autoSlideTimer = window.setInterval(() => {
       goToCard(currentIndex + 1);
     }, 8000);
@@ -566,6 +572,7 @@ serviceCarousels.forEach((carousel) => {
   }
 
   function resumeAutoSlide(delay = 0) {
+    if (isTouchStopped) return;
     window.clearTimeout(resumeTimer);
     resumeTimer = window.setTimeout(() => {
       isPaused = false;
@@ -607,8 +614,13 @@ serviceCarousels.forEach((carousel) => {
   carousel.addEventListener("mouseleave", () => resumeAutoSlide(1500));
   carousel.addEventListener("focusin", pauseAutoSlide);
   carousel.addEventListener("focusout", () => resumeAutoSlide(1500));
-  track.addEventListener("pointerdown", pauseAutoSlide);
-  track.addEventListener("pointerup", () => resumeAutoSlide(5000));
+  track.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch") isTouchStopped = true;
+    pauseAutoSlide();
+  });
+  track.addEventListener("pointerup", () => {
+    if (!isTouchStopped) resumeAutoSlide(5000);
+  });
   track.addEventListener("scroll", frameThrottle(syncIndexFromScroll), {
     passive: true,
   });
@@ -641,7 +653,6 @@ mobileAutoSliders.forEach((track) => {
 
   let currentIndex = 0;
   let autoSlideTimer;
-  let resumeTimer;
   let isInteracting = false;
   let isVisible = false;
 
@@ -690,23 +701,12 @@ mobileAutoSliders.forEach((track) => {
   }
 
   function pauseForInteraction() {
+    if (!mobileSliderMedia.matches) return;
     isInteracting = true;
-    window.clearTimeout(resumeTimer);
     stopAutoSlide();
   }
 
-  function resumeAfterInteraction() {
-    window.clearTimeout(resumeTimer);
-    resumeTimer = window.setTimeout(() => {
-      isInteracting = false;
-      syncIndexFromScroll();
-      scheduleAutoSlide();
-    }, 5000);
-  }
-
   track.addEventListener("pointerdown", pauseForInteraction);
-  track.addEventListener("pointerup", resumeAfterInteraction);
-  track.addEventListener("pointercancel", resumeAfterInteraction);
   track.addEventListener("scroll", frameThrottle(syncIndexFromScroll), {
     passive: true,
   });
