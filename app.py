@@ -7,17 +7,31 @@ import json
 import mimetypes
 import os
 import secrets
+import smtplib
 import threading
 import time
+from email.message import EmailMessage
 from http import cookies
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import quote, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
 from marketplace_auth import (
     AuthStore,
     AuthValidationError,
     DuplicateEmailError,
+)
+from marketplace_catalog import CatalogStore
+from marketplace_checkout import (
+    CartStore,
+    CheckoutValidationError,
+    StockConflictError,
+)
+from marketplace_payment import (
+    MidtransClient,
+    PaymentGatewayError,
+    PaymentStore,
+    PaymentValidationError,
 )
 
 
@@ -49,6 +63,7 @@ load_env_file()
 PUBLIC_ROOT = Path(os.environ.get("PUBLIC_ROOT") or PROJECT_ROOT).resolve()
 DATA_ROOT = Path(os.environ.get("DATA_ROOT") or PROJECT_ROOT / "data").resolve()
 UPLOAD_ROOT = DATA_ROOT / "owner-media"
+MEMBER_MEDIA_ROOT = DATA_ROOT / "member-media"
 SETTINGS_FILE = DATA_ROOT / "owner-settings.json"
 MARKETPLACE_DATABASE = DATA_ROOT / "marketplace.sqlite3"
 MARKETPLACE_SHELL = "/src/pages/marketplace-shell.html"
@@ -57,8 +72,11 @@ MARKETPLACE_ROUTES = {
     "/marketplace",
     "/login",
     "/register",
+    "/forgot-password",
+    "/reset-password",
     "/member",
     "/member/profile",
+    "/member/notifications",
     "/member/orders",
     "/member/consultation",
     "/news",
@@ -67,6 +85,7 @@ MARKETPLACE_ROUTES = {
 PROTECTED_MEMBER_ROUTES = {
     "/member",
     "/member/profile",
+    "/member/notifications",
     "/member/orders",
     "/member/consultation",
     "/checkout",
@@ -83,6 +102,24 @@ MEMBER_SESSION_ABSOLUTE_TTL = int(
 MEMBER_SESSION_COOKIE = "feira_member_session"
 MAX_JSON_BODY = 140 * 1024 * 1024
 MAX_AUTH_JSON_BODY = 16 * 1024
+MAX_AVATAR_JSON_BODY = 3 * 1024 * 1024
+PASSWORD_RESET_DEBUG = os.environ.get("PASSWORD_RESET_DEBUG", "0") == "1"
+SMTP_HOST = os.environ.get("SMTP_HOST", "").strip()
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "").strip()
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USERNAME).strip()
+SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "1") == "1"
+SUPER_ADMIN_EMAILS = {
+    email.strip().lower()
+    for email in os.environ.get("MARKETPLACE_SUPER_ADMIN_EMAILS", "").split(",")
+    if email.strip()
+}
+MIDTRANS_SERVER_KEY = os.environ.get("MIDTRANS_SERVER_KEY", "").strip()
+MIDTRANS_PRODUCTION = os.environ.get("MIDTRANS_PRODUCTION", "0") == "1"
+MIDTRANS_MOCK = os.environ.get(
+    "MIDTRANS_MOCK", "0" if MIDTRANS_SERVER_KEY else "1"
+) == "1"
 
 DEFAULT_SETTINGS = {
     "processAudioAutoplay": True,
@@ -125,7 +162,48 @@ AUTH_STORE = AuthStore(
     MARKETPLACE_DATABASE,
     idle_ttl=MEMBER_SESSION_TTL,
     absolute_ttl=MEMBER_SESSION_ABSOLUTE_TTL,
+    super_admin_emails=SUPER_ADMIN_EMAILS,
 )
+CATALOG_STORE = CatalogStore(MARKETPLACE_DATABASE)
+CART_STORE = CartStore(MARKETPLACE_DATABASE)
+MIDTRANS_CLIENT = MidtransClient(
+    server_key=MIDTRANS_SERVER_KEY,
+    production=MIDTRANS_PRODUCTION,
+    mock=MIDTRANS_MOCK,
+)
+PAYMENT_STORE = PaymentStore(MARKETPLACE_DATABASE, MIDTRANS_CLIENT)
+
+
+def send_password_reset_email(user: dict, reset_url: str) -> bool:
+    if not SMTP_HOST or not SMTP_FROM:
+        return False
+    message = EmailMessage()
+    message["Subject"] = "Reset password Feira"
+    message["From"] = SMTP_FROM
+    message["To"] = user["email"]
+    message.set_content(
+        "\n".join(
+            [
+                f"Halo {user['name']},",
+                "",
+                "Gunakan link berikut untuk mengatur ulang password Feira Anda:",
+                reset_url,
+                "",
+                "Link berlaku selama 30 menit. Abaikan email ini jika Anda tidak memintanya.",
+            ]
+        )
+    )
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as smtp:
+            if SMTP_USE_TLS:
+                smtp.starttls()
+            if SMTP_USERNAME:
+                smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+            smtp.send_message(message)
+        return True
+    except (OSError, smtplib.SMTPException) as error:
+        print(f"WARNING: password reset email gagal dikirim: {error}")
+        return False
 
 
 def deep_copy_default() -> dict:
@@ -344,7 +422,107 @@ class BintangHandler(SimpleHTTPRequestHandler):
         )
 
     def do_GET(self):
-        path = unquote(urlparse(self.path).path)
+        parsed_url = urlparse(self.path)
+        path = unquote(parsed_url.path)
+        query = parse_qs(parsed_url.query)
+
+        if path == "/api/v1/categories":
+            self.auth_response(
+                200,
+                True,
+                "Kategori produk tersedia.",
+                {"categories": CATALOG_STORE.list_categories()},
+            )
+            return
+
+        if path == "/api/v1/products":
+            featured_value = str(query.get("featured", [""])[0]).lower()
+            products = CATALOG_STORE.list_products(
+                search=query.get("search", [""])[0],
+                category=query.get("category", [""])[0],
+                featured=featured_value in {"1", "true", "yes"},
+                sort=query.get("sort", ["featured"])[0],
+            )
+            self.auth_response(
+                200,
+                True,
+                "Produk tersedia.",
+                {"products": products, "count": len(products)},
+            )
+            return
+
+        if path == "/api/v1/products/featured":
+            products = CATALOG_STORE.list_products(featured=True)
+            self.auth_response(
+                200,
+                True,
+                "Produk featured tersedia.",
+                {"products": products, "count": len(products)},
+            )
+            return
+
+        if path == "/api/v1/products/search":
+            products = CATALOG_STORE.list_products(
+                search=query.get("q", query.get("search", [""]))[0],
+                sort=query.get("sort", ["featured"])[0],
+            )
+            self.auth_response(
+                200,
+                True,
+                "Hasil pencarian produk tersedia.",
+                {"products": products, "count": len(products)},
+            )
+            return
+
+        if path.startswith("/api/v1/products/category/"):
+            category_slug = path.removeprefix("/api/v1/products/category/").strip("/")
+            products = CATALOG_STORE.list_products(
+                category=category_slug,
+                sort=query.get("sort", ["featured"])[0],
+            )
+            self.auth_response(
+                200,
+                True,
+                "Produk kategori tersedia.",
+                {"products": products, "count": len(products)},
+            )
+            return
+
+        if path.startswith("/api/v1/products/"):
+            slug = path.removeprefix("/api/v1/products/").strip("/")
+            product = CATALOG_STORE.get_product(slug)
+            if not product:
+                self.auth_response(404, False, "Produk tidak ditemukan.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Detail produk tersedia.",
+                {"product": product},
+            )
+            return
+
+        if path.startswith("/api/v1/categories/"):
+            category_slug = path.removeprefix("/api/v1/categories/").strip("/")
+            category = next(
+                (
+                    item
+                    for item in CATALOG_STORE.list_categories()
+                    if item["slug"] == category_slug
+                ),
+                None,
+            )
+            if not category:
+                self.auth_response(404, False, "Kategori tidak ditemukan.")
+                return
+            category["products"] = CATALOG_STORE.list_products(category=category_slug)
+            self.auth_response(
+                200,
+                True,
+                "Detail kategori tersedia.",
+                {"category": category},
+            )
+            return
 
         if path == "/api/v1/auth/me":
             session = self.member_session()
@@ -373,6 +551,80 @@ class BintangHandler(SimpleHTTPRequestHandler):
                 True,
                 "Profile member tersedia.",
                 {"profile": profile},
+            )
+            return
+
+        if path == "/api/v1/member/notifications":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            notifications = AUTH_STORE.list_notifications(session.user["id"])
+            self.auth_response(
+                200,
+                True,
+                "Notifikasi member tersedia.",
+                {"notifications": notifications},
+            )
+            return
+
+        if path == "/api/v1/cart":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Cart tersedia.",
+                {"cart": CART_STORE.get_cart(session.user["id"])},
+            )
+            return
+
+        if path == "/api/v1/member/addresses":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Alamat member tersedia.",
+                {"addresses": CART_STORE.list_addresses(session.user["id"])},
+            )
+            return
+
+        if path == "/api/v1/member/orders":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Order member tersedia.",
+                {"orders": CART_STORE.list_orders(session.user["id"])},
+            )
+            return
+
+        if path == "/api/v1/payments":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            order_id = str(query.get("orderId", [""])[0]).strip()
+            if not order_id:
+                self.auth_response(422, False, "Order wajib dipilih.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Payment order tersedia.",
+                {
+                    "payments": PAYMENT_STORE.list_order_payments(
+                        session.user["id"], order_id
+                    )
+                },
             )
             return
 
@@ -423,6 +675,10 @@ class BintangHandler(SimpleHTTPRequestHandler):
             self.serve_owner_media(path)
             return
 
+        if path.startswith("/member-media/"):
+            self.serve_member_media(path)
+            return
+
         super().do_GET()
 
     def do_HEAD(self):
@@ -456,6 +712,9 @@ class BintangHandler(SimpleHTTPRequestHandler):
 
         if path.startswith("/owner-media/"):
             self.serve_owner_media(path, head_only=True)
+            return
+        if path.startswith("/member-media/"):
+            self.serve_member_media(path, head_only=True)
             return
         super().do_HEAD()
 
@@ -514,6 +773,22 @@ class BintangHandler(SimpleHTTPRequestHandler):
                     break
                 self.wfile.write(chunk)
                 remaining -= len(chunk)
+
+    def serve_member_media(self, path: str, head_only: bool = False) -> None:
+        filename = Path(path.removeprefix("/member-media/")).name
+        target = MEMBER_MEDIA_ROOT / filename
+        if not target.is_file():
+            self.send_error(404)
+            return
+        mime_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+        body = target.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", mime_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "public, max-age=86400, immutable")
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(body)
 
     def do_POST(self):
         path = unquote(urlparse(self.path).path)
@@ -609,6 +884,243 @@ class BintangHandler(SimpleHTTPRequestHandler):
             )
             return
 
+        if path == "/api/v1/auth/forgot-password":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            if self.auth_rate_limited("forgot-password", 5, 60 * 60):
+                self.auth_response(429, False, "Terlalu banyak permintaan reset password.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                email = payload.get("email") if isinstance(payload, dict) else ""
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request reset password tidak valid.")
+                return
+            reset = AUTH_STORE.create_password_reset(email)
+            response_data = None
+            if reset:
+                token, user = reset
+                scheme = (
+                    "https"
+                    if self.headers.get("X-Forwarded-Proto") == "https"
+                    else "http"
+                )
+                reset_url = (
+                    f"{scheme}://{self.headers.get('Host', '')}"
+                    f"/reset-password?token={quote(token, safe='')}"
+                )
+                send_password_reset_email(user, reset_url)
+                if PASSWORD_RESET_DEBUG:
+                    response_data = {"resetUrl": reset_url}
+            self.auth_response(
+                200,
+                True,
+                "Jika email terdaftar, instruksi reset password telah dikirim.",
+                response_data,
+            )
+            return
+
+        if path == "/api/v1/auth/reset-password":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            if self.auth_rate_limited("reset-password", 10, 60 * 60):
+                self.auth_response(429, False, "Terlalu banyak percobaan reset password.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                if not isinstance(payload, dict):
+                    raise AuthValidationError("Request reset password tidak valid.")
+                AUTH_STORE.reset_password(payload.get("token"), payload.get("password"))
+            except AuthValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request reset password tidak valid.")
+                return
+            self.auth_response(200, True, "Password berhasil diperbarui. Silakan login.")
+            return
+
+        if path == "/api/v1/member/avatar":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            try:
+                payload = self.read_json(MAX_AVATAR_JSON_BODY)
+                avatar_url = self.save_member_avatar(session.user["id"], payload)
+                profile = AUTH_STORE.update_avatar(session.user["id"], avatar_url)
+            except AuthValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError, OSError) as error:
+                self.auth_response(400, False, str(error))
+                return
+            self.auth_response(
+                200,
+                True,
+                "Avatar berhasil diperbarui.",
+                {"profile": profile},
+            )
+            return
+
+        if path == "/api/v1/cart/add":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                if not isinstance(payload, dict):
+                    raise CheckoutValidationError("Data cart tidak valid.")
+                cart = CART_STORE.add_item(
+                    session.user["id"], payload.get("productSlug"), payload.get("qty", 1)
+                )
+            except CheckoutValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except StockConflictError as error:
+                self.auth_response(409, False, str(error))
+                return
+            except LookupError:
+                self.auth_response(404, False, "Produk tidak ditemukan.")
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request cart tidak valid.")
+                return
+            self.auth_response(200, True, "Produk ditambahkan ke cart.", {"cart": cart})
+            return
+
+        if path == "/api/v1/member/addresses":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                address = CART_STORE.save_address(session.user["id"], payload)
+            except CheckoutValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request alamat tidak valid.")
+                return
+            self.auth_response(201, True, "Alamat berhasil disimpan.", {"address": address})
+            return
+
+        if path == "/api/v1/checkout":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                order = CART_STORE.checkout(session.user["id"], payload)
+            except CheckoutValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except StockConflictError as error:
+                self.auth_response(409, False, str(error))
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request checkout tidak valid.")
+                return
+            self.auth_response(201, True, "Order berhasil dibuat.", {"order": order})
+            return
+
+        if path == "/api/v1/payment/create":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            if self.auth_rate_limited("payment-create", 20, 60 * 60):
+                self.auth_response(429, False, "Terlalu banyak percobaan pembayaran.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                if not isinstance(payload, dict):
+                    raise PaymentValidationError("Data payment tidak valid.")
+                payment = PAYMENT_STORE.create_payment(
+                    session.user["id"],
+                    payload.get("orderId"),
+                    payload.get("method"),
+                    payload.get("bank"),
+                )
+            except PaymentValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except PaymentGatewayError as error:
+                self.auth_response(502, False, str(error))
+                return
+            except LookupError:
+                self.auth_response(404, False, "Order tidak ditemukan.")
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request payment tidak valid.")
+                return
+            self.auth_response(
+                201,
+                True,
+                "Instruksi pembayaran berhasil dibuat.",
+                {"payment": payment, "mock": MIDTRANS_CLIENT.mock},
+            )
+            return
+
+        if path == "/api/v1/payment/callback/midtrans":
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                result = PAYMENT_STORE.handle_notification(payload)
+            except PermissionError:
+                self.auth_response(403, False, "Signature callback tidak valid.")
+                return
+            except PaymentValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except LookupError:
+                self.auth_response(404, False, "Payment tidak ditemukan.")
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Callback payment tidak valid.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Callback payment diproses.",
+                result,
+            )
+            return
+
         if path == "/api/owner/login":
             try:
                 payload = self.read_json()
@@ -699,7 +1211,156 @@ class BintangHandler(SimpleHTTPRequestHandler):
             )
             return
 
+        if path == "/api/v1/member/notifications/read":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                notification_id = (
+                    str(payload.get("notificationId") or "").strip()
+                    if isinstance(payload, dict)
+                    else ""
+                )
+                notifications = AUTH_STORE.mark_notifications_read(
+                    session.user["id"], notification_id or None
+                )
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request notifikasi tidak valid.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Status notifikasi diperbarui.",
+                {"notifications": notifications},
+            )
+            return
+
+        if path.startswith("/api/v1/cart/items/"):
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            item_id = path.removeprefix("/api/v1/cart/items/").strip("/")
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                qty = payload.get("qty") if isinstance(payload, dict) else None
+                cart = CART_STORE.update_item(session.user["id"], item_id, qty)
+            except CheckoutValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except StockConflictError as error:
+                self.auth_response(409, False, str(error))
+                return
+            except LookupError:
+                self.auth_response(404, False, "Item cart tidak ditemukan.")
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request cart tidak valid.")
+                return
+            self.auth_response(200, True, "Jumlah cart diperbarui.", {"cart": cart})
+            return
+
+        if path.startswith("/api/v1/admin/members/") and path.endswith("/role"):
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            target_id = path.removeprefix("/api/v1/admin/members/").removesuffix("/role")
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                role = payload.get("role") if isinstance(payload, dict) else ""
+                user = AUTH_STORE.update_user_role(
+                    session.user["id"], target_id.strip("/"), role
+                )
+            except PermissionError as error:
+                self.auth_response(403, False, str(error))
+                return
+            except AuthValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except LookupError:
+                self.auth_response(404, False, "Member tidak ditemukan.")
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request role tidak valid.")
+                return
+            self.auth_response(200, True, "Role member berhasil diperbarui.", {"user": user})
+            return
+
         self.send_error(404)
+
+    def do_DELETE(self):
+        path = unquote(urlparse(self.path).path)
+        if path.startswith("/api/v1/cart/items/"):
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            item_id = path.removeprefix("/api/v1/cart/items/").strip("/")
+            try:
+                cart = CART_STORE.remove_item(session.user["id"], item_id)
+            except LookupError:
+                self.auth_response(404, False, "Item cart tidak ditemukan.")
+                return
+            self.auth_response(200, True, "Item dihapus dari cart.", {"cart": cart})
+            return
+        self.send_error(404)
+
+    def save_member_avatar(self, user_id: str, payload: object) -> str:
+        if not isinstance(payload, dict) or not isinstance(payload.get("data"), str):
+            raise ValueError("Data avatar tidak valid.")
+        try:
+            metadata, encoded = payload["data"].split(",", 1)
+            declared_mime = metadata.removeprefix("data:").split(";", 1)[0].lower()
+            binary = base64.b64decode(encoded, validate=True)
+        except (ValueError, base64.binascii.Error):
+            raise ValueError("File avatar rusak atau tidak valid.")
+        if not binary or len(binary) > 2 * 1024 * 1024:
+            raise ValueError("Ukuran avatar maksimal 2MB.")
+
+        detected = ""
+        extension = ""
+        if binary.startswith(b"\x89PNG\r\n\x1a\n"):
+            detected, extension = "image/png", ".png"
+        elif binary.startswith(b"\xff\xd8\xff"):
+            detected, extension = "image/jpeg", ".jpg"
+        elif len(binary) >= 12 and binary[:4] == b"RIFF" and binary[8:12] == b"WEBP":
+            detected, extension = "image/webp", ".webp"
+        if not detected or detected != declared_mime:
+            raise ValueError("Format avatar harus JPG, PNG, atau WebP.")
+
+        digest = hashlib.sha256(binary).hexdigest()[:20]
+        safe_user_id = "".join(character for character in user_id if character.isalnum())
+        filename = f"avatar-{safe_user_id}-{digest}{extension}"
+        MEMBER_MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        (MEMBER_MEDIA_ROOT / filename).write_bytes(binary)
+        return f"/member-media/{filename}"
 
     def save_upload(self, payload: object) -> str:
         if not isinstance(payload, dict):
@@ -735,6 +1396,9 @@ class BintangHandler(SimpleHTTPRequestHandler):
 def main():
     DATA_ROOT.mkdir(parents=True, exist_ok=True)
     AUTH_STORE.initialize()
+    CATALOG_STORE.initialize()
+    CART_STORE.initialize()
+    PAYMENT_STORE.initialize()
     AUTH_STORE.cleanup_expired_sessions()
     server = ThreadingHTTPServer((HOST, PORT), BintangHandler)
     print(f"Bintang Computer Feira server: http://{HOST}:{PORT}")

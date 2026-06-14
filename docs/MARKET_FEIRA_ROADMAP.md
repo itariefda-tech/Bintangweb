@@ -137,13 +137,13 @@ Membangun ecosystem login dan member area.
 
 * [x] Register page
 * [x] Login page
-* [ ] Forgot password
+* [x] Forgot password
 * [x] Session management
-* [ ] Role management
+* [x] Role management
 * [x] Member dashboard
-* [ ] Profile settings
-* [ ] Avatar upload
-* [ ] Notification center
+* [x] Profile settings
+* [x] Avatar upload
+* [x] Notification center
 
 ---
 
@@ -152,16 +152,22 @@ Membangun ecosystem login dan member area.
 * [x] Mobile login nyaman
 * [x] Fast auth flow
 * [x] Clean member dashboard
-* [ ] One-hand mobile interaction
+* [x] One-hand mobile interaction
 
-## Output / Result - Limited Auth & Member Stage (2026-06-14)
+## Output / Result - Auth & Member System (2026-06-14)
 
 * Form register/login sudah terhubung ke API dengan validation feedback per field.
 * Login berhasil mengarahkan user ke tujuan member yang diizinkan.
 * Header menampilkan identitas member dan action logout saat session aktif.
 * Dashboard member dipersonalisasi dan hanya dapat dibuka oleh session valid.
-* Role awal setiap registrasi adalah `member`; role administration belum diimplementasikan.
-* Unit test auth store, HTTP integration, restart persistence, CSRF, origin guard, dan production route test berhasil.
+* Forgot/reset password memakai token acak yang disimpan sebagai SHA-256 hash, berlaku 30 menit, sekali pakai, dan mencabut seluruh session lama.
+* Pengiriman link reset mendukung SMTP; debug URL hanya tersedia saat `PASSWORD_RESET_DEBUG=1`.
+* Role `member`, `admin`, dan `super_admin` memiliki hierarchy enforcement; perubahan role hanya dapat dilakukan super admin melalui API terlindungi.
+* Profile settings menyimpan identitas, kontak, perusahaan, alamat, dan bio.
+* Avatar JPG/PNG/WebP maksimal 2MB divalidasi berdasarkan file signature dan disimpan di private data volume.
+* Notification center persisten menyediakan unread count, mark-one, dan mark-all.
+* Bottom navigation member menyediakan target sentuh minimum 44px untuk interaksi satu tangan di mobile.
+* Unit test auth store mencakup password hash, session, profile, reset password, avatar, notification isolation, role authorization, dan migration idempotency.
 
 ---
 
@@ -173,33 +179,46 @@ Membangun sistem marketplace utama.
 
 ## Product System
 
-* [ ] Product category
-* [ ] Product listing
-* [ ] Product detail
-* [ ] Product gallery
-* [ ] Featured product
-* [ ] Related product
-* [ ] Product badge
-* [ ] Stock status
+* [x] Product category
+* [x] Product listing
+* [x] Product detail
+* [x] Product gallery
+* [x] Featured product
+* [x] Related product
+* [x] Product badge
+* [x] Stock status
 
 ---
 
 ## Search & Filtering
 
-* [ ] Product search
-* [ ] Category filter
-* [ ] Sort system
-* [ ] Featured filter
+* [x] Product search
+* [x] Category filter
+* [x] Sort system
+* [x] Featured filter
 
 ---
 
 ## Marketplace UI
 
-* [ ] Product card system
-* [ ] Marketplace hero
-* [ ] Marketplace banner
-* [ ] Marketplace mobile navigation
-* [ ] Floating cart
+* [x] Product card system
+* [x] Marketplace hero
+* [x] Marketplace banner
+* [x] Marketplace mobile navigation
+* [x] Floating cart
+
+## Output / Result - Marketplace Core (2026-06-14)
+
+* Kategori, produk, dan gallery tersimpan pada SQLite melalui migration schema versi 4.
+* Seed katalog awal idempotent menyediakan lima produk pada empat kategori tanpa menduplikasi data saat restart.
+* API publik versioned tersedia untuk kategori, listing, detail slug, featured, category listing, dan search.
+* Listing mendukung pencarian, filter kategori, featured-only, serta sort featured, terbaru, nama, dan harga.
+* Filter disimpan pada query URL sehingga hasil dapat dibagikan dan kompatibel dengan browser navigation.
+* Detail produk menampilkan gallery, badge, kategori, harga, status stok, dan related products.
+* Product card reusable menggunakan data API dan membedakan in-stock, low-stock, serta out-of-stock.
+* Hero marketplace, featured campaign banner, mobile bottom navigation, dan floating cart sudah aktif.
+* Cart masih menampilkan jumlah nol dan menjadi titik integrasi Phase 4.
+* Unit test katalog mencakup seed idempotent, filter, sort, gallery, related product, stock, dan public visibility.
 
 ---
 
@@ -211,28 +230,43 @@ Membangun shopping flow modern.
 
 ## Cart System
 
-* [ ] Add to cart
-* [ ] Remove cart item
-* [ ] Qty update
-* [ ] Cart persistence
+* [x] Add to cart
+* [x] Remove cart item
+* [x] Qty update
+* [x] Cart persistence
 
 ---
 
 ## Checkout System
 
-* [ ] Checkout page
-* [ ] Shipping form
-* [ ] Address management
-* [ ] Invoice generation
-* [ ] Order summary
+* [x] Checkout page
+* [x] Shipping form
+* [x] Address management
+* [x] Invoice generation
+* [x] Order summary
 
 ---
 
 ## Mobile UX
 
-* [ ] Sticky checkout CTA
-* [ ] Mobile-safe cart
-* [ ] Fast checkout flow
+* [x] Sticky checkout CTA
+* [x] Mobile-safe cart
+* [x] Fast checkout flow
+
+## Output / Result - Cart & Checkout (2026-06-14)
+
+* Schema versi 5 menyediakan `carts`, `cart_items`, `member_addresses`, `orders`, dan `order_items`.
+* Cart hanya dapat diakses member dan persisten di SQLite berdasarkan user aktif.
+* Add-to-cart, quantity update, dan remove item memakai same-origin, session, CSRF, serta validasi stok server-side.
+* Floating cart menampilkan total quantity aktual dari server pada seluruh halaman.
+* Checkout menampilkan cart editor, alamat tersimpan atau alamat baru, metode pengiriman, subtotal, shipping cost, dan grand total.
+* Alamat dapat disimpan sebagai default dan digunakan kembali pada checkout berikutnya.
+* Invoice unik dibuat bersama snapshot item order, alamat pengiriman, harga, dan status awal `unpaid` / `pending`.
+* Checkout menggunakan transaksi `BEGIN IMMEDIATE`, validasi ulang stok/harga, conditional stock decrement, pembuatan order, dan konversi cart secara atomik.
+* Jika stok berubah saat checkout, seluruh transaksi di-rollback sehingga tidak ada order parsial atau pengurangan stok ganda.
+* Order history member menampilkan invoice, total, payment status, dan order status.
+* Mobile cart memakai target sentuh minimum 44px dan order summary sticky pada desktop.
+* Integration test mencakup cart persistence, add/update/remove, alamat, invoice, stock decrement, serta rollback overselling dua member.
 
 ---
 
@@ -244,21 +278,37 @@ Integrasi transaksi digital modern.
 
 ## Tasks
 
-* [ ] Payment architecture
-* [ ] Midtrans/Xendit integration
-* [ ] QRIS support
-* [ ] Bank transfer
-* [ ] Payment callback validation
-* [ ] Payment status automation
-* [ ] Payment notification
+* [x] Payment architecture
+* [x] Midtrans/Xendit integration
+* [x] QRIS support
+* [x] Bank transfer
+* [x] Payment callback validation
+* [x] Payment status automation
+* [x] Payment notification
 
 ---
 
 ## Security
 
-* [ ] Signature validation
-* [ ] Callback verification
-* [ ] Duplicate callback protection
+* [x] Signature validation
+* [x] Callback verification
+* [x] Duplicate callback protection
+
+## Output / Result - Payment Gateway (2026-06-14)
+
+* Midtrans Core API dipilih untuk mempertahankan checkout UI custom Feira dengan dukungan QRIS dan Virtual Account.
+* Schema versi 6 menyediakan payment attempt dan immutable callback event ledger.
+* QRIS serta bank transfer BCA, BNI, BRI, dan Permata dapat dibuat dari order member.
+* Mode sandbox/production dikendalikan environment; mode mock lokal aktif saat server key belum tersedia.
+* Credential Midtrans hanya digunakan server-side melalui Basic Authentication dan tidak pernah dikirim ke frontend.
+* Callback Midtrans tersedia pada `POST /api/v1/payment/callback/midtrans`.
+* Signature diverifikasi menggunakan SHA-512 `order_id + status_code + gross_amount + server_key`.
+* Callback juga memverifikasi invoice provider, nominal order, status code `200`, fraud status `accept`, dan transaction status.
+* Event key transaction/status mencegah callback duplikat memproses perubahan yang sama lebih dari sekali.
+* Status payment/order otomatis dipetakan untuk pending, paid, failed, expired, dan cancelled.
+* Member menerima notifikasi persisten setiap perubahan status payment.
+* Order history menampilkan pilihan metode, QR instruction, Virtual Account, dan status pembayaran.
+* Integration test mencakup QRIS, Virtual Account, signature formula, amount mismatch, status automation, notification, dan duplicate callback.
 
 ---
 

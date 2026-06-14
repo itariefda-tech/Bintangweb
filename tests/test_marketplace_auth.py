@@ -107,6 +107,72 @@ class AuthStoreTests(unittest.TestCase):
             set(context.exception.errors),
         )
 
+    def test_password_reset_is_single_use_and_revokes_sessions(self):
+        user = self.store.register("Feira Member", "member@example.com", "securepass123")
+        session_token, _session = self.store.create_session(user["id"])
+        token, reset_user = self.store.create_password_reset("MEMBER@example.com")
+
+        self.assertEqual(user["id"], reset_user["id"])
+        self.store.reset_password(token, "new-secure-pass456")
+
+        self.assertIsNone(self.store.get_session(session_token))
+        self.assertIsNone(self.store.authenticate("member@example.com", "securepass123"))
+        self.assertEqual(
+            user["id"],
+            self.store.authenticate("member@example.com", "new-secure-pass456")["id"],
+        )
+        with self.assertRaises(AuthValidationError):
+            self.store.reset_password(token, "another-secure-pass789")
+
+    def test_notifications_are_private_and_can_be_marked_read(self):
+        first = self.store.register("First Member", "first@example.com", "securepass123")
+        second = self.store.register("Second Member", "second@example.com", "securepass123")
+
+        first_notifications = self.store.list_notifications(first["id"])
+        second_notifications = self.store.list_notifications(second["id"])
+        self.assertEqual(1, first_notifications["unreadCount"])
+        self.assertEqual(1, second_notifications["unreadCount"])
+        self.assertNotEqual(
+            first_notifications["items"][0]["id"],
+            second_notifications["items"][0]["id"],
+        )
+
+        updated = self.store.mark_notifications_read(
+            first["id"], first_notifications["items"][0]["id"]
+        )
+        self.assertEqual(0, updated["unreadCount"])
+        self.assertEqual(1, self.store.list_notifications(second["id"])["unreadCount"])
+
+    def test_avatar_url_is_validated_and_persisted(self):
+        user = self.store.register("Feira Member", "member@example.com", "securepass123")
+        profile = self.store.update_avatar(
+            user["id"], "/member-media/avatar-member-example.png"
+        )
+        self.assertEqual(
+            "/member-media/avatar-member-example.png", profile["avatarUrl"]
+        )
+        with self.assertRaises(AuthValidationError):
+            self.store.update_avatar(user["id"], "https://example.com/avatar.png")
+
+    def test_only_super_admin_can_update_roles(self):
+        store = AuthStore(
+            self.database,
+            idle_ttl=3600,
+            absolute_ttl=7200,
+            super_admin_emails={"owner@example.com"},
+        )
+        store.initialize()
+        owner = store.register("Owner Feira", "owner@example.com", "securepass123")
+        member = store.register("Feira Member", "member@example.com", "securepass123")
+        other = store.register("Other Member", "other@example.com", "securepass123")
+
+        updated = store.update_user_role(owner["id"], member["id"], "admin")
+        self.assertEqual("admin", updated["role"])
+        with self.assertRaises(PermissionError):
+            store.update_user_role(other["id"], member["id"], "member")
+        with self.assertRaises(AuthValidationError):
+            store.update_user_role(owner["id"], owner["id"], "admin")
+
     def test_schema_migrations_are_versioned_and_idempotent(self):
         user = self.store.register("Feira Member", "member@example.com", "securepass123")
         self.store.initialize()
@@ -123,7 +189,7 @@ class AuthStoreTests(unittest.TestCase):
                 (user["id"],),
             ).fetchone()[0]
 
-        self.assertEqual([1, 2], versions)
+        self.assertEqual([1, 2, 3], versions)
         self.assertEqual(1, user_count)
 
 

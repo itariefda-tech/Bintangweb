@@ -45,6 +45,20 @@ export function loginMember({ email, password }) {
   });
 }
 
+export function requestPasswordReset({ email }) {
+  return request("/api/v1/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetMemberPassword({ token, password }) {
+  return request("/api/v1/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
+}
+
 export function logoutMember(csrfToken) {
   return request("/api/v1/auth/logout", {
     method: "POST",
@@ -68,4 +82,30 @@ export async function updateMemberProfile(profile, csrfToken) {
     body: JSON.stringify(profile),
   });
   return data.profile;
+}
+
+export async function uploadMemberAvatar(data, csrfToken) {
+  const response = await request("/api/v1/member/avatar", {
+    method: "POST",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify({ data }),
+  });
+  return response.profile;
+}
+
+export async function getMemberNotifications() {
+  const data = await request("/api/v1/member/notifications", {
+    method: "GET",
+    headers: {},
+  });
+  return data.notifications;
+}
+
+export async function markMemberNotificationsRead(notificationId, csrfToken) {
+  const data = await request("/api/v1/member/notifications/read", {
+    method: "PUT",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify({ notificationId }),
+  });
+  return data.notifications;
 }

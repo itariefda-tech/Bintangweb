@@ -16,7 +16,7 @@ FROM python:3.12-alpine
 
 WORKDIR /app
 
-COPY app.py marketplace_auth.py ./
+COPY app.py marketplace_auth.py marketplace_catalog.py marketplace_checkout.py marketplace_payment.py ./
 COPY --from=builder /app/dist/ ./public/
 
 RUN mkdir -p /app/data

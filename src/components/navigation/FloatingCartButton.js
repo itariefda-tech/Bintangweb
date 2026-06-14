@@ -1,8 +1,9 @@
-export function renderFloatingCartButton() {
+export function renderFloatingCartButton(count = 0, session = null) {
+  const href = session ? "/checkout" : "/login?next=/checkout";
   return `
-    <a class="mf-floating-cart" href="/checkout" aria-label="Buka checkout placeholder">
+    <a class="mf-floating-cart" href="${href}" aria-label="Buka cart, ${count} item">
       <span aria-hidden="true">Cart</span>
-      <strong>0</strong>
+      <strong data-cart-count>${count}</strong>
     </a>
   `;
 }

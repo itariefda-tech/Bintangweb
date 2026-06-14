@@ -94,6 +94,14 @@ Wajib:
 * validate nominal
 * validate payment status
 
+Current implementation:
+
+* Midtrans SHA-512 signature verification
+* invoice/provider order lookup
+* exact gross amount comparison
+* status code, fraud status, dan transaction status validation
+* idempotent event key untuk duplicate webhook
+
 ---
 
 # PAYMENT RULES

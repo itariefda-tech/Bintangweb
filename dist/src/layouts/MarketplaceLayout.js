@@ -8,15 +8,18 @@ const escapeHtml = (value = "") =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-export function renderMarketplaceLayout({ content, activeRoute, session }) {
+export function renderMarketplaceLayout({ content, activeRoute, session, unreadCount = 0, cartCount = 0 }) {
   const isActive = (route) => activeRoute === route ? ' aria-current="page"' : "";
-  const isMemberActive = ["member", "profile", "orders", "consultation"].includes(activeRoute)
+  const isMemberActive = ["member", "profile", "notifications", "orders", "consultation"].includes(activeRoute)
     ? ' aria-current="page"'
     : "";
   const accountAction = session
     ? `
       <div class="mf-account">
         <a href="/member" title="${escapeHtml(session.user.email)}">${escapeHtml(session.user.name)}</a>
+        <a class="mf-notification-link" href="/member/notifications" aria-label="Notifikasi, ${unreadCount} belum dibaca">
+          Notifikasi${unreadCount ? `<strong>${unreadCount}</strong>` : ""}
+        </a>
         <button type="button" data-logout>Logout</button>
       </div>
     `
@@ -39,12 +42,23 @@ export function renderMarketplaceLayout({ content, activeRoute, session }) {
       </div>
     </header>
     <main id="mf-main">${content}</main>
+    <nav class="mf-mobile-nav" aria-label="Navigasi marketplace mobile">
+        <a href="/marketplace"${isActive("marketplace")}><span>Market</span></a>
+        <a href="/news"${isActive("news")}><span>IT News</span></a>
+        ${session ? `
+          <a href="/member/notifications"${isActive("notifications")}><span>Notifikasi${unreadCount ? ` (${unreadCount})` : ""}</span></a>
+          <a href="/member"${isMemberActive}><span>Member</span></a>
+        ` : `
+          <a href="/member/consultation"${isActive("consultation")}><span>Konsultasi</span></a>
+          <a href="/login"${isActive("login")}><span>Login</span></a>
+        `}
+      </nav>
     <footer class="mf-footer">
       <div class="mf-container mf-footer__inner">
         <div><strong>Feira Technology Ecosystem</strong><p>Marketplace, consultation, member, dan insight dalam satu pondasi modular.</p></div>
         <a href="/">Kembali ke website utama</a>
       </div>
     </footer>
-    ${renderFloatingCartButton()}
+    ${activeRoute === "checkout" ? "" : renderFloatingCartButton(cartCount, session)}
   `;
 }

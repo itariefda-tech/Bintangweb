@@ -107,8 +107,8 @@ GET    /api/v1/categories/{slug}
 ```http id="v4lgk7"
 GET    /api/v1/cart
 POST   /api/v1/cart/add
-PUT    /api/v1/cart/update
-DELETE /api/v1/cart/remove/{id}
+PUT    /api/v1/cart/items/{id}
+DELETE /api/v1/cart/items/{id}
 ```
 
 ---
@@ -117,8 +117,14 @@ DELETE /api/v1/cart/remove/{id}
 
 ```http id="sqqw8u"
 POST   /api/v1/checkout
-GET    /api/v1/orders
-GET    /api/v1/orders/{invoice}
+GET    /api/v1/member/orders
+
+Implemented member endpoints:
+
+```http
+GET    /api/v1/member/addresses
+POST   /api/v1/member/addresses
+```
 ```
 
 ---
@@ -129,6 +135,14 @@ GET    /api/v1/orders/{invoice}
 POST   /api/v1/payment/create
 POST   /api/v1/payment/callback
 GET    /api/v1/payment/status/{invoice}
+```
+
+Implemented Phase 5 endpoints:
+
+```http
+POST   /api/v1/payment/create
+GET    /api/v1/payments?orderId={id}
+POST   /api/v1/payment/callback/midtrans
 ```
 
 ---
