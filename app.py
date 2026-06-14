@@ -18,6 +18,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 ENV_FILE = PROJECT_ROOT / ".env"
 
 
+def normalize_env_value(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1]
+    return value
+
+
 def load_env_file() -> None:
     if not ENV_FILE.exists():
         return
@@ -27,7 +34,7 @@ def load_env_file() -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+        os.environ.setdefault(key.strip(), normalize_env_value(value))
 
 
 load_env_file()
@@ -153,7 +160,7 @@ def cleanup_sessions() -> None:
         SESSIONS.pop(token, None)
 
 
-OWNER_PASSWORD = os.environ.get("OWNER_PASSWORD", "")
+OWNER_PASSWORD = normalize_env_value(os.environ.get("OWNER_PASSWORD", ""))
 
 
 class BintangHandler(SimpleHTTPRequestHandler):

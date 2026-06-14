@@ -18,6 +18,16 @@ git fetch origin
 git reset --hard origin/main
 git clean -fd
 
+if [ ! -f "$APP_DIR/.env" ]; then
+  echo "Deployment failed: $APP_DIR/.env tidak ditemukan."
+  exit 1
+fi
+
+if ! grep -Eq '^[[:space:]]*OWNER_PASSWORD[[:space:]]*=[[:space:]]*[^[:space:]]' "$APP_DIR/.env"; then
+  echo "Deployment failed: OWNER_PASSWORD belum diatur di $APP_DIR/.env."
+  exit 1
+fi
+
 echo "==> Ensure Docker network exists"
 docker network inspect "$NETWORK_NAME" >/dev/null 2>&1 || \
   docker network create "$NETWORK_NAME"

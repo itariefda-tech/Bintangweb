@@ -8,3 +8,6 @@ docker run -d \
   -v bintangweb-app-data:/app/data \
   -p 5080:5080 \
   bintangweb-app:latest
+
+# Verifikasi variabel tersedia tanpa menampilkan password
+docker exec bintangweb-app sh -c 'test -n "$OWNER_PASSWORD" && echo "OWNER_PASSWORD loaded"'

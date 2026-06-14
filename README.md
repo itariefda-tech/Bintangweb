@@ -197,3 +197,20 @@ OWNER_PASSWORD=change-this-owner-password
 ```
 
 Setting dan upload disimpan di folder `data/`. Pada Docker, gunakan persistent volume ke `/app/data` dan jalankan container dengan `--env-file`.
+
+Setelah mengubah `.env` di VPS, container harus dibuat ulang agar environment baru terbaca. `docker restart` saja tidak memperbarui nilai environment:
+
+```bash
+cd /opt/apps/Bintangweb
+docker rm -f bintangweb-app
+docker run -d \
+  --name bintangweb-app \
+  --restart unless-stopped \
+  --network hosting_web \
+  --env-file /opt/apps/Bintangweb/.env \
+  -v bintangweb-app-data:/app/data \
+  -p 5080:5080 \
+  bintangweb-app:latest
+```
+
+Nilai password boleh ditulis tanpa kutip atau memakai sepasang kutip. Server menormalkan keduanya dengan cara yang sama.
