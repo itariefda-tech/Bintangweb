@@ -3,6 +3,7 @@ deploy.sh
 
 # Owner credentials and persisted builder content.
 .env
-data/
+/data/
+/tmp/
 __pycache__/
 *.pyc

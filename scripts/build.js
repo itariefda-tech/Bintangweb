@@ -42,6 +42,43 @@ function copyDir(source, target) {
   }
 }
 
+function validateLocalJsImports(sourceDir) {
+  const missingImports = [];
+
+  function visit(directory) {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const filePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        visit(filePath);
+        continue;
+      }
+      if (!entry.isFile() || path.extname(entry.name) !== ".js") continue;
+
+      const source = fs.readFileSync(filePath, "utf8");
+      const patterns = [
+        /\bfrom\s+["'](\.{1,2}\/[^"']+)["']/g,
+        /\bimport\s+["'](\.{1,2}\/[^"']+)["']/g,
+      ];
+
+      for (const pattern of patterns) {
+        for (const match of source.matchAll(pattern)) {
+          const importedPath = path.resolve(path.dirname(filePath), match[1]);
+          if (!fs.existsSync(importedPath)) {
+            missingImports.push(
+              `${path.relative(root, filePath)} -> ${path.relative(root, importedPath)}`
+            );
+          }
+        }
+      }
+    }
+  }
+
+  visit(sourceDir);
+  if (missingImports.length) {
+    throw new Error(`Missing local JavaScript imports:\n${missingImports.join("\n")}`);
+  }
+}
+
 function minifyCss(input) {
   return input
     .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -72,6 +109,7 @@ function contentHash(input) {
   return crypto.createHash("sha256").update(input).digest("hex").slice(0, 12);
 }
 
+validateLocalJsImports(path.join(root, "src"));
 removeDir(dist);
 ensureDir(path.join(dist, "css"));
 ensureDir(path.join(dist, "js"));
