@@ -103,13 +103,6 @@
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   }
 
-  .proof-bridge {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .proof-bridge .button-group {
-    justify-content: flex-end;
-  }
 }
 
 @media (min-width: 900px) {
@@ -139,7 +132,7 @@
   }
 
   .proof-layout {
-    grid-template-columns: minmax(0, 7fr) minmax(300px, 5fr);
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.75fr);
     align-items: stretch;
   }
 
@@ -155,7 +148,7 @@
     display: grid;
     height: 100%;
     min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: clamp(0.55rem, 1.5svh, 0.9rem);
   }
 
@@ -191,6 +184,7 @@
   .proof-layout,
   .proof-dossier,
   .project-film,
+  .client-panel,
   .proof-case-stack,
   .proof-case {
     min-height: 0;
@@ -307,21 +301,30 @@
     min-height: 34px;
   }
 
-  .proof-bridge {
-    min-height: 0;
-    gap: 0.65rem;
-    margin-top: 0;
-    padding: 0.55rem 0.8rem;
+  .client-panel {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(180px, 0.32fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
   }
 
-  .proof-bridge > p {
-    font-size: clamp(0.88rem, 1.35vw, 1.05rem);
+  .client-panel-intro {
+    border-right: 1px solid rgba(255, 224, 180, 0.2);
+    border-bottom: 0;
   }
 
-  .proof-bridge .button {
-    min-height: 38px;
-    padding: 0.55rem 0.9rem;
-    font-size: 0.7rem;
+  .client-panel-group {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 0.45rem 0.85rem;
+  }
+
+  .client-panel-name {
+    border-right: 1px solid rgba(255, 224, 180, 0.16);
+    border-bottom: 0;
+    padding-inline: 0.65rem;
+  }
+
+  .client-panel-name:last-child {
+    border-right: 0;
   }
 }
 
@@ -410,7 +413,7 @@
   }
 
   .about-quote {
-    grid-area: quote;
+    grid-area: auto;
   }
 
   .why-layout {
@@ -662,10 +665,6 @@
 
   .proof-case-copy {
     padding: 1rem;
-  }
-
-  .proof-bridge {
-    padding: 0.85rem;
   }
 
   .floating-whatsapp {
@@ -1104,11 +1103,6 @@
     font-size: 0.76rem;
   }
 
-  .proof-bridge {
-    gap: 0.8rem;
-    padding: 0.65rem 0.9rem;
-  }
-
   .contact-footer-viewport {
     display: grid;
     height: var(--desktop-section-height, calc(100svh - 73px));
@@ -1410,7 +1404,8 @@
   .why-path,
   .process-step,
   .proof-dossier,
-  .project-film {
+  .project-film,
+  .client-panel {
     width: auto;
     min-width: 0;
     flex: 0 0 100%;
@@ -1694,26 +1689,9 @@
     aspect-ratio: 4 / 5;
   }
 
-  .proof-bridge {
-    gap: 0.6rem;
-    margin-top: 0.65rem;
-    padding: 0.75rem;
-  }
-
-  .proof-bridge > p {
-    font-size: 0.9rem;
-  }
-
-  .proof-bridge .button-group {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-  }
-
-  .proof-bridge .button {
-    min-height: 38px;
-    padding: 0.55rem 0.45rem;
-    font-size: 0.65rem;
+  .client-panel {
+    min-width: min(82vw, 320px);
+    align-self: stretch;
   }
 
   .site-footer {
@@ -1736,5 +1714,211 @@
   .site-footer a:not(.brand) {
     margin-top: 0.35rem;
     font-size: 0.82rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899.98px) {
+  .about-section {
+    min-height: calc(100svh - var(--sticky-offset, 73px));
+    padding-block: clamp(1.5rem, 4svh, 2.5rem);
+  }
+
+  .about-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "copy"
+      "story";
+    gap: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .about-copy {
+    grid-area: copy;
+    max-width: 760px;
+  }
+
+  .about-copy h2 {
+    max-width: 18ch;
+    font-size: clamp(2.5rem, 6vw, 3.8rem);
+  }
+
+  .about-story-track {
+    display: grid;
+    grid-area: story;
+    gap: 1rem;
+  }
+
+  .about-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-card {
+    min-height: 230px;
+  }
+
+  .about-quote {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .about-quote footer {
+    max-width: 20ch;
+    text-align: right;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1199.98px) {
+  .about-quote {
+    grid-template-columns: auto minmax(0, 1fr) minmax(110px, 0.35fr);
+  }
+
+  .about-quote p {
+    font-size: clamp(0.85rem, 1.1vw, 1rem);
+  }
+
+  .about-quote footer {
+    max-width: 16ch;
+    font-size: 0.62rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .about-section > .container {
+    width: min(calc(100% - 2rem), 1600px);
+    max-width: none;
+  }
+
+  .about-grid {
+    grid-template-columns:
+      minmax(280px, 0.72fr)
+      minmax(650px, 1.55fr)
+      minmax(240px, 0.63fr);
+    grid-template-areas: "copy cards quote";
+    height: 100%;
+    gap: clamp(1rem, 1.8vw, 2rem);
+    align-items: stretch;
+  }
+
+  .about-copy {
+    grid-area: copy;
+    align-content: center;
+    max-width: none;
+  }
+
+  .about-copy h2 {
+    max-width: 10.5ch;
+    font-size: clamp(2.8rem, min(4vw, 6.2svh), 4.4rem);
+    line-height: 1.02;
+  }
+
+  .about-intro {
+    max-width: 38ch;
+    font-size: clamp(0.9rem, 1.05vw, 1.08rem);
+    line-height: 1.65;
+  }
+
+  .about-story-track {
+    display: contents;
+  }
+
+  .about-cards {
+    grid-area: cards;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1.2vw, 1.1rem);
+  }
+
+  .about-card {
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) clamp(88px, 8vw, 132px);
+    grid-template-rows: auto 1fr;
+    gap: 0.6rem 0.8rem;
+    padding: clamp(1rem, 1.35vw, 1.35rem);
+  }
+
+  .about-card-silhouette {
+    min-height: 0;
+    max-height: none;
+  }
+
+  .about-card h3 {
+    font-size: clamp(1rem, 1.15vw, 1.25rem);
+  }
+
+  .about-card > p {
+    font-size: clamp(0.78rem, 0.88vw, 0.94rem);
+    line-height: 1.5;
+  }
+
+  .about-quote {
+    grid-area: quote;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: center;
+    align-items: start;
+    gap: clamp(0.8rem, 1.5svh, 1.2rem);
+    padding: clamp(1.25rem, 1.8vw, 1.8rem);
+  }
+
+  .about-quote-mark {
+    height: 1.5rem;
+    font-size: clamp(3.4rem, 4vw, 4.8rem);
+  }
+
+  .about-quote p {
+    align-self: center;
+    font-size: clamp(1.15rem, 1.55vw, 1.65rem);
+    line-height: 1.35;
+  }
+
+  .about-quote footer {
+    max-width: none;
+    font-size: clamp(0.62rem, 0.68vw, 0.76rem);
+    line-height: 1.45;
+    text-align: left;
+  }
+
+  .proof-section > .container {
+    width: min(calc(100% - 2rem), 1600px);
+    max-width: none;
+  }
+
+  .proof-layout {
+    grid-template-columns:
+      minmax(620px, 1.55fr)
+      minmax(260px, 0.67fr)
+      minmax(220px, 0.48fr);
+    gap: clamp(0.75rem, 1.2vw, 1.15rem);
+  }
+
+  .client-panel {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+  }
+
+  .client-panel-intro {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 224, 180, 0.2);
+  }
+
+  .client-panel-group {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.4rem clamp(0.75rem, 1vw, 1rem) 0.75rem;
+  }
+
+  .client-panel-name {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 224, 180, 0.16);
+    padding-inline: 0.15rem;
+  }
+
+  .client-panel-name:last-child {
+    border-bottom: 0;
   }
 }

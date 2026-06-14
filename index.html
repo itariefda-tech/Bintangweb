@@ -35,12 +35,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
       rel="stylesheet"
     >
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="stylesheet" href="./css/components.css">
-    <link rel="stylesheet" href="./css/responsive.css">
+    <link rel="stylesheet" href="./css/style.css?v=20260614-client-roll">
+    <link rel="stylesheet" href="./css/components.css?v=20260614-client-roll">
+    <link rel="stylesheet" href="./css/responsive.css?v=20260614-client-roll">
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -1003,14 +1003,15 @@
                 <a class="project-film-link" href="#contact">Discuss your next system <span aria-hidden="true">+</span></a>
               </div>
             </aside>
-          </div>
 
-          <div class="proof-bridge">
-            <p>Punya kebutuhan yang mirip, atau justru belum tahu harus mulai dari mana?</p>
-            <div class="button-group">
-              <a class="button button-primary" href="#contact">Diskusikan Kebutuhan Anda</a>
-              <a class="button button-secondary" href="#services">Lihat Semua Layanan</a>
-            </div>
+            <aside class="client-panel" aria-labelledby="client-panel-title" data-client-panel>
+              <div class="client-panel-intro">
+                <small>Our Network</small>
+                <strong id="client-panel-title">Client Us</strong>
+                <span>Partners who trust our work.</span>
+              </div>
+              <div class="client-panel-list" data-client-list></div>
+            </aside>
           </div>
         </div>
       </section>
@@ -1085,6 +1086,6 @@
       </form>
     </dialog>
 
-    <script src="./js/app.js" defer></script>
+    <script src="./js/app.js?v=20260614-client-roll" defer></script>
   </body>
 </html>

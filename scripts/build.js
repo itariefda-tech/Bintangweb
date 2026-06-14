@@ -97,11 +97,11 @@ fs.writeFileSync(path.join(dist, "js", jsFile), minifiedJs);
 let html = fs.readFileSync(files.html, "utf8");
 html = html
   .replace(
-    /<link rel="stylesheet" href="\.\/css\/style\.css">\s*<link rel="stylesheet" href="\.\/css\/components\.css">\s*<link rel="stylesheet" href="\.\/css\/responsive\.css">/,
+    /<link rel="stylesheet" href="\.\/css\/style\.css(?:\?[^"]*)?">\s*<link rel="stylesheet" href="\.\/css\/components\.css(?:\?[^"]*)?">\s*<link rel="stylesheet" href="\.\/css\/responsive\.css(?:\?[^"]*)?">/,
     `<link rel="stylesheet" href="./css/${cssFile}">`
   )
   .replace(
-    '<script src="./js/app.js" defer></script>',
+    /<script src="\.\/js\/app\.js(?:\?[^"]*)?" defer><\/script>/,
     `<script src="./js/${jsFile}" defer></script>`
   );
 fs.writeFileSync(path.join(dist, "index.html"), minifyHtml(html));

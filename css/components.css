@@ -2253,7 +2253,8 @@
 }
 
 .proof-dossier,
-.project-film {
+.project-film,
+.client-panel {
   min-width: 0;
   border: 1px solid rgba(201, 154, 58, 0.24);
   border-radius: clamp(1.35rem, 3vw, 2rem);
@@ -2915,29 +2916,182 @@
   font-size: 1.15rem;
 }
 
-.proof-bridge {
+.client-panel {
+  position: relative;
   display: grid;
-  gap: 0.85rem;
-  margin-top: 1.2rem;
-  border: 1px solid rgba(201, 154, 58, 0.22);
-  border-radius: 1.15rem;
-  padding: 0.9rem 1rem;
-  align-items: center;
-  background: rgba(255, 252, 246, 0.6);
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  isolation: isolate;
+  color: #fffaf1;
+  background:
+    linear-gradient(90deg, rgba(255, 222, 167, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(255, 222, 167, 0.06) 1px, transparent 1px),
+    radial-gradient(circle at 85% 18%, rgba(255, 221, 167, 0.2), transparent 35%),
+    linear-gradient(145deg, #8a5a35, #51301c);
+  background-size: 34px 34px, 34px 34px, auto, auto;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 45px rgba(42, 21, 9, 0.2),
+    0 28px 80px rgba(75, 46, 22, 0.2);
 }
 
-.proof-bridge > p {
-  color: #3d5664;
+.client-panel::before,
+.client-panel::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  width: 2.7rem;
+  height: 2.7rem;
+  pointer-events: none;
+}
+
+.client-panel::before {
+  top: 0.7rem;
+  left: 0.7rem;
+  border-top: 1px solid rgba(255, 222, 167, 0.58);
+  border-left: 1px solid rgba(255, 222, 167, 0.58);
+  border-radius: 0.65rem 0 0;
+}
+
+.client-panel::after {
+  right: 0.7rem;
+  bottom: 0.7rem;
+  border-right: 1px solid rgba(255, 222, 167, 0.58);
+  border-bottom: 1px solid rgba(255, 222, 167, 0.58);
+  border-radius: 0 0 0.65rem;
+}
+
+.client-panel-intro {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 0.35rem;
+  border-bottom: 1px solid rgba(255, 224, 180, 0.2);
+  padding: clamp(1rem, 1.6vw, 1.35rem);
+  background:
+    radial-gradient(circle at 90% 0, rgba(255, 220, 163, 0.18), transparent 42%),
+    rgba(69, 38, 19, 0.48);
+  box-shadow: 0 10px 24px rgba(44, 23, 10, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+.client-panel-intro small {
+  color: #f0bf70;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.client-panel-intro strong {
   font-family: var(--font-heading);
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-size: clamp(1.45rem, 2vw, 2rem);
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1;
 }
 
-.proof-bridge .button {
-  min-height: 44px;
-  padding-block: 0.7rem;
-  font-size: 0.78rem;
+.client-panel-intro span {
+  color: rgba(255, 248, 235, 0.68);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.client-panel-list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.client-panel-track {
+  display: flex;
+  min-height: max-content;
+  flex-direction: column;
+  animation: client-panel-roll var(--client-roll-duration, 18s) linear infinite;
+  will-change: transform;
+}
+
+.client-panel-group {
+  display: grid;
+  min-height: 100%;
+  padding: 0.55rem clamp(0.85rem, 1.3vw, 1.1rem);
+  align-content: stretch;
+}
+
+.client-panel-name {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 224, 180, 0.16);
+  padding: clamp(0.65rem, 1.2svh, 0.9rem) 0.15rem;
+  align-items: center;
+}
+
+.client-panel-name:last-child {
+  border-bottom: 0;
+}
+
+.client-panel-name small {
+  display: inline-flex;
+  width: 2rem;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 224, 180, 0.34);
+  border-radius: 50%;
+  color: #ffe0ad;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: rgba(42, 22, 10, 0.3);
+}
+
+.client-panel-name strong {
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: clamp(0.76rem, 0.9vw, 0.92rem);
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+}
+
+.client-panel-empty {
+  margin: auto 0;
+  padding: 1rem;
+  color: rgba(255, 248, 235, 0.68);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.client-panel:hover .client-panel-track {
+  animation-play-state: paused;
+}
+
+@keyframes client-panel-roll {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-panel-list {
+    overflow-y: auto;
+    mask-image: none;
+  }
+
+  .client-panel-track {
+    animation: none;
+  }
+
+  .client-panel-group[aria-hidden="true"] {
+    display: none;
+  }
 }
 
 .cta-section {

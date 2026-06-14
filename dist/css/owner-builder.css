@@ -186,7 +186,8 @@ a {
 
 .theme-options,
 .testimonial-editor,
-.background-editor {
+.background-editor,
+.client-list-editor {
   display: grid;
   gap: 0.8rem;
   margin-top: 1.25rem;
@@ -299,7 +300,8 @@ body[data-preview-theme="monochrome"] {
 }
 
 .testimonial-form label,
-.background-item label {
+.background-item label,
+.client-list-editor label {
   display: grid;
   gap: 0.35rem;
   color: var(--owner-muted);
@@ -308,7 +310,8 @@ body[data-preview-theme="monochrome"] {
 }
 
 .testimonial-form input,
-.testimonial-form textarea {
+.testimonial-form textarea,
+.client-list-editor textarea {
   width: 100%;
   border: 1px solid var(--owner-border);
   border-radius: 12px;
@@ -319,7 +322,8 @@ body[data-preview-theme="monochrome"] {
 }
 
 .testimonial-form input:focus,
-.testimonial-form textarea:focus {
+.testimonial-form textarea:focus,
+.client-list-editor textarea:focus {
   border-color: var(--owner-blue);
 }
 

@@ -46,6 +46,7 @@ MAX_JSON_BODY = 140 * 1024 * 1024
 DEFAULT_SETTINGS = {
     "processAudioAutoplay": True,
     "workVideo": "",
+    "clients": [],
     "backgrounds": {
         "header": "",
         "hero": "",
@@ -94,6 +95,14 @@ def merge_settings(candidate: object) -> dict:
     work_video = candidate.get("workVideo")
     if isinstance(work_video, str):
         result["workVideo"] = work_video[:500]
+
+    clients = candidate.get("clients")
+    if isinstance(clients, list):
+        result["clients"] = [
+            value.strip()[:120]
+            for value in clients[:100]
+            if isinstance(value, str) and value.strip()
+        ]
 
     backgrounds = candidate.get("backgrounds")
     if isinstance(backgrounds, dict):

@@ -6,6 +6,7 @@ const siteHeader = document.querySelector("[data-site-header]");
 const defaultPublicSettings = {
   processAudioAutoplay: true,
   workVideo: "",
+  clients: [],
   backgrounds: {},
   testimonials: {},
 };
@@ -23,6 +24,48 @@ function initialsFromName(name) {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (!words.length) return "BCF";
   return words.slice(0, 2).map((word) => word[0]).join("").toUpperCase();
+}
+
+function applyClientList(clients) {
+  const list = document.querySelector("[data-client-list]");
+  if (!list) return;
+
+  const normalizedClients = Array.isArray(clients)
+    ? clients.filter((client) => typeof client === "string" && client.trim())
+    : [];
+
+  if (!normalizedClients.length) {
+    const empty = document.createElement("p");
+    empty.className = "client-panel-empty";
+    empty.textContent = "Client list is being prepared.";
+    list.replaceChildren(empty);
+    return;
+  }
+
+  const createGroup = (isDuplicate = false) => {
+    const group = document.createElement("div");
+    group.className = "client-panel-group";
+    if (isDuplicate) group.setAttribute("aria-hidden", "true");
+
+    normalizedClients.forEach((client, index) => {
+      const item = document.createElement("div");
+      item.className = "client-panel-name";
+      const number = document.createElement("small");
+      const name = document.createElement("strong");
+      number.textContent = String(index + 1).padStart(2, "0");
+      name.textContent = client.trim();
+      item.append(number, name);
+      group.append(item);
+    });
+
+    return group;
+  };
+
+  const track = document.createElement("div");
+  track.className = "client-panel-track";
+  track.style.setProperty("--client-roll-duration", `${Math.max(14, normalizedClients.length * 3.5)}s`);
+  track.append(createGroup(), createGroup(true));
+  list.replaceChildren(track);
 }
 
 function applyPublicSettings(settings) {
@@ -85,6 +128,8 @@ function applyPublicSettings(settings) {
     const filmLabel = projectFilm.querySelector(".project-film-meta span:last-child");
     if (filmLabel) filmLabel.textContent = "Ready to play";
   }
+
+  applyClientList(settings.clients);
 }
 
 const publicSettingsPromise = fetch("/api/public-settings", {
@@ -213,7 +258,7 @@ if (siteHeader && "ResizeObserver" in window) {
 }
 
 const revealItems = document.querySelectorAll(
-  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-step, .proof-dossier, .project-film, .proof-bridge, .cta-panel"
+  ".section-header, .problem-card, .problem-closing, .about-copy, .about-card, .about-quote, .service-card, .detail-card, .why-intro, .reason-list article, .why-path, .highlight-card, .process-step, .proof-dossier, .project-film, .client-panel, .cta-panel"
 );
 
 if (revealItems.length && "IntersectionObserver" in window) {

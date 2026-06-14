@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "python app.py",
+    "dev": "node scripts/dev.js",
     "build": "node scripts/build.js"
   }
 }

@@ -13,6 +13,7 @@ const saveState = document.querySelector("[data-save-state]");
 const audioToggle = document.querySelector("[data-audio-toggle]");
 const audioLabel = document.querySelector("[data-audio-label]");
 const backgroundEditor = document.querySelector("[data-background-editor]");
+const clientList = document.querySelector("[data-client-list]");
 let settings;
 let toastTimer;
 
@@ -119,6 +120,7 @@ function populateForm() {
 
   audioToggle.checked = settings.processAudioAutoplay;
   audioLabel.textContent = audioToggle.checked ? "Aktif" : "Nonaktif";
+  clientList.value = Array.isArray(settings.clients) ? settings.clients.join("\n") : "";
   document.querySelector("[data-video-current]").textContent =
     settings.workVideo || "Belum ada video aktif.";
   renderBackgrounds();
@@ -131,6 +133,10 @@ function collectForm() {
       entry[field.dataset.field] = field.value.trim();
     });
   });
+  settings.clients = clientList.value
+    .split(/\r?\n/)
+    .map((client) => client.trim())
+    .filter(Boolean);
   settings.processAudioAutoplay = audioToggle.checked;
 }
 
@@ -172,7 +178,7 @@ audioToggle.addEventListener("change", () => {
 document.querySelector("[data-save-settings]").addEventListener("click", async () => {
   try {
     await saveSettings();
-    showToast("Testimoni dan audio berhasil diperbarui.");
+    showToast("Daftar client, testimoni, dan audio berhasil diperbarui.");
   } catch (error) {
     showToast(error.message);
   }
