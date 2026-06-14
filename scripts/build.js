@@ -76,6 +76,7 @@ removeDir(dist);
 ensureDir(path.join(dist, "css"));
 ensureDir(path.join(dist, "js"));
 copyDir(path.join(root, "assets"), path.join(dist, "assets"));
+copyDir(path.join(root, "src"), path.join(dist, "src"));
 
 files.rootAssets.forEach((file) => {
   const source = path.join(root, file);
@@ -116,6 +117,7 @@ const report = {
   css: `dist/css/${cssFile}`,
   js: `dist/js/${jsFile}`,
   assets: "dist/assets",
+  marketplace: "dist/src/pages/marketplace-shell.html",
   owner: "dist/owner-builder.html",
 };
 

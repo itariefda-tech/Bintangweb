@@ -1,0 +1,58 @@
+.mf-body {
+  color: var(--mf-charcoal);
+  font-family: var(--mf-font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.mf-body h1,
+.mf-body h2,
+.mf-body h3,
+.mf-body p {
+  margin: 0;
+}
+
+.mf-body h1,
+.mf-body h2,
+.mf-body h3 {
+  color: var(--mf-dark-brown);
+  font-family: var(--mf-font-heading);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.mf-body h1 {
+  max-width: 13ch;
+  font-size: clamp(2.35rem, 10vw, 4.75rem);
+  line-height: 1.02;
+}
+
+.mf-body h2 {
+  font-size: clamp(1.85rem, 7vw, 3.2rem);
+  line-height: 1.08;
+}
+
+.mf-body h3 {
+  font-size: clamp(1.2rem, 5vw, 1.45rem);
+  line-height: 1.2;
+}
+
+.mf-lead {
+  max-width: 62ch;
+  color: var(--mf-muted);
+  font-size: clamp(1rem, 3vw, 1.15rem);
+}
+
+.mf-eyebrow {
+  width: fit-content;
+  border: var(--mf-border);
+  border-radius: var(--mf-radius-pill);
+  padding: 0.35rem 0.8rem;
+  color: var(--mf-deep-gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  background: rgba(255, 252, 246, 0.76);
+}

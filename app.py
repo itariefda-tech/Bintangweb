@@ -7,11 +7,18 @@ import json
 import mimetypes
 import os
 import secrets
+import threading
 import time
 from http import cookies
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
+
+from marketplace_auth import (
+    AuthStore,
+    AuthValidationError,
+    DuplicateEmailError,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -43,12 +50,39 @@ PUBLIC_ROOT = Path(os.environ.get("PUBLIC_ROOT") or PROJECT_ROOT).resolve()
 DATA_ROOT = Path(os.environ.get("DATA_ROOT") or PROJECT_ROOT / "data").resolve()
 UPLOAD_ROOT = DATA_ROOT / "owner-media"
 SETTINGS_FILE = DATA_ROOT / "owner-settings.json"
+MARKETPLACE_DATABASE = DATA_ROOT / "marketplace.sqlite3"
+MARKETPLACE_SHELL = "/src/pages/marketplace-shell.html"
+
+MARKETPLACE_ROUTES = {
+    "/marketplace",
+    "/login",
+    "/register",
+    "/member",
+    "/member/profile",
+    "/member/orders",
+    "/member/consultation",
+    "/news",
+    "/checkout",
+}
+PROTECTED_MEMBER_ROUTES = {
+    "/member",
+    "/member/profile",
+    "/member/orders",
+    "/member/consultation",
+    "/checkout",
+}
 
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8000"))
 SESSION_TTL = 8 * 60 * 60
 SESSION_COOKIE = "bcf_owner_session"
+MEMBER_SESSION_TTL = int(os.environ.get("MEMBER_SESSION_TTL", str(8 * 60 * 60)))
+MEMBER_SESSION_ABSOLUTE_TTL = int(
+    os.environ.get("MEMBER_SESSION_ABSOLUTE_TTL", str(7 * 24 * 60 * 60))
+)
+MEMBER_SESSION_COOKIE = "feira_member_session"
 MAX_JSON_BODY = 140 * 1024 * 1024
+MAX_AUTH_JSON_BODY = 16 * 1024
 
 DEFAULT_SETTINGS = {
     "processAudioAutoplay": True,
@@ -85,6 +119,13 @@ ALLOWED_UPLOADS = {
 }
 
 SESSIONS: dict[str, float] = {}
+AUTH_RATE_LIMITS: dict[str, list[float]] = {}
+AUTH_RATE_LIMIT_LOCK = threading.Lock()
+AUTH_STORE = AuthStore(
+    MARKETPLACE_DATABASE,
+    idle_ttl=MEMBER_SESSION_TTL,
+    absolute_ttl=MEMBER_SESSION_ABSOLUTE_TTL,
+)
 
 
 def deep_copy_default() -> dict:
@@ -173,7 +214,11 @@ class BintangHandler(SimpleHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "same-origin")
-        if self.path.startswith("/api/") or self.path.startswith("/owner-builder"):
+        if (
+            self.path.startswith("/api/")
+            or self.path.startswith("/owner-builder")
+            or self.path.startswith("/src/")
+        ):
             self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
@@ -187,22 +232,91 @@ class BintangHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def read_json(self) -> object:
+    def read_json(self, max_bytes: int = MAX_JSON_BODY) -> object:
         length = int(self.headers.get("Content-Length", "0"))
-        if length <= 0 or length > MAX_JSON_BODY:
+        if length <= 0 or length > max_bytes:
             raise ValueError("Ukuran request tidak valid.")
         raw = self.rfile.read(length)
         return json.loads(raw.decode("utf-8"))
 
-    def session_token(self) -> str:
+    def cookie_value(self, name: str) -> str:
         raw_cookie = self.headers.get("Cookie", "")
         jar = cookies.SimpleCookie()
         try:
             jar.load(raw_cookie)
         except cookies.CookieError:
             return ""
-        morsel = jar.get(SESSION_COOKIE)
+        morsel = jar.get(name)
         return morsel.value if morsel else ""
+
+    def session_token(self) -> str:
+        return self.cookie_value(SESSION_COOKIE)
+
+    def member_session_token(self) -> str:
+        return self.cookie_value(MEMBER_SESSION_COOKIE)
+
+    def member_session(self, refresh: bool = True):
+        return AUTH_STORE.get_session(self.member_session_token(), refresh=refresh)
+
+    def auth_response(
+        self,
+        status: int,
+        success: bool,
+        message: str,
+        data: object | None = None,
+        errors: dict | None = None,
+        extra_headers=None,
+    ) -> None:
+        payload = {"success": success, "message": message}
+        if data is not None:
+            payload["data"] = data
+        if errors:
+            payload["errors"] = errors
+        self.send_json(status, payload, extra_headers)
+
+    def is_same_origin_request(self) -> bool:
+        fetch_site = self.headers.get("Sec-Fetch-Site", "")
+        if fetch_site == "cross-site":
+            return False
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        expected_scheme = (
+            "https" if self.headers.get("X-Forwarded-Proto") == "https" else "http"
+        )
+        return origin == f"{expected_scheme}://{self.headers.get('Host', '')}"
+
+    def auth_rate_limited(self, action: str, limit: int, window: int) -> bool:
+        client_ip = self.client_address[0]
+        key = f"{action}:{client_ip}"
+        now = time.time()
+        with AUTH_RATE_LIMIT_LOCK:
+            attempts = [
+                timestamp
+                for timestamp in AUTH_RATE_LIMITS.get(key, [])
+                if timestamp > now - window
+            ]
+            if len(attempts) >= limit:
+                AUTH_RATE_LIMITS[key] = attempts
+                return True
+            attempts.append(now)
+            AUTH_RATE_LIMITS[key] = attempts
+        return False
+
+    def member_cookie(self, token: str, max_age: int) -> str:
+        secure = "; Secure" if self.headers.get("X-Forwarded-Proto") == "https" else ""
+        return (
+            f"{MEMBER_SESSION_COOKIE}={token}; Path=/; HttpOnly; SameSite=Lax; "
+            f"Max-Age={max_age}{secure}"
+        )
+
+    def valid_member_csrf(self, session) -> bool:
+        submitted = self.headers.get("X-CSRF-Token", "")
+        return bool(
+            session
+            and submitted
+            and hmac.compare_digest(submitted, session.csrf_token)
+        )
 
     def is_owner(self) -> bool:
         cleanup_sessions()
@@ -231,6 +345,50 @@ class BintangHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = unquote(urlparse(self.path).path)
+
+        if path == "/api/v1/auth/me":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Sesi member aktif.",
+                {"user": session.user, "csrfToken": session.csrf_token},
+            )
+            return
+
+        if path == "/api/v1/member/profile":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            profile = AUTH_STORE.get_profile(session.user["id"])
+            if not profile:
+                self.auth_response(404, False, "Profile member tidak ditemukan.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Profile member tersedia.",
+                {"profile": profile},
+            )
+            return
+
+        normalized_path = path.rstrip("/") or "/"
+        if normalized_path in PROTECTED_MEMBER_ROUTES and not self.member_session():
+            target = quote(normalized_path, safe="/")
+            self.send_response(303)
+            self.send_header("Location", f"/login?next={target}")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
+
+        if path.rstrip("/") in MARKETPLACE_ROUTES or path.startswith("/marketplace/product/"):
+            self.path = MARKETPLACE_SHELL
+            super().do_GET()
+            return
 
         if path == "/api/public-settings":
             self.send_json(200, read_settings())
@@ -269,6 +427,20 @@ class BintangHandler(SimpleHTTPRequestHandler):
 
     def do_HEAD(self):
         path = unquote(urlparse(self.path).path)
+
+        normalized_path = path.rstrip("/") or "/"
+        if normalized_path in PROTECTED_MEMBER_ROUTES and not self.member_session():
+            target = quote(normalized_path, safe="/")
+            self.send_response(303)
+            self.send_header("Location", f"/login?next={target}")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
+
+        if path.rstrip("/") in MARKETPLACE_ROUTES or path.startswith("/marketplace/product/"):
+            self.path = MARKETPLACE_SHELL
+            super().do_HEAD()
+            return
 
         if path in {"/owner-builder", "/owner-builder/"}:
             if not self.is_owner():
@@ -346,6 +518,97 @@ class BintangHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         path = unquote(urlparse(self.path).path)
 
+        if path == "/api/v1/auth/register":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            if self.auth_rate_limited("register", 5, 60 * 60):
+                self.auth_response(429, False, "Terlalu banyak percobaan registrasi.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                if not isinstance(payload, dict):
+                    raise AuthValidationError("Data registrasi tidak valid.")
+                user = AUTH_STORE.register(
+                    payload.get("name"),
+                    payload.get("email"),
+                    payload.get("password"),
+                )
+                token, session = AUTH_STORE.create_session(user["id"])
+            except AuthValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except DuplicateEmailError as error:
+                self.auth_response(409, False, str(error), errors={"email": str(error)})
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request registrasi tidak valid.")
+                return
+            self.auth_response(
+                201,
+                True,
+                "Akun member berhasil dibuat.",
+                {"user": session.user, "csrfToken": session.csrf_token},
+                extra_headers=[
+                    ("Set-Cookie", self.member_cookie(token, MEMBER_SESSION_ABSOLUTE_TTL))
+                ],
+            )
+            return
+
+        if path == "/api/v1/auth/login":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            if self.auth_rate_limited("login", 10, 15 * 60):
+                self.auth_response(429, False, "Terlalu banyak percobaan login.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                if not isinstance(payload, dict):
+                    raise AuthValidationError("Email atau password tidak valid.")
+                user = AUTH_STORE.authenticate(
+                    payload.get("email"),
+                    payload.get("password"),
+                )
+            except AuthValidationError:
+                user = None
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request login tidak valid.")
+                return
+            if not user:
+                time.sleep(0.25)
+                self.auth_response(401, False, "Email atau password tidak valid.")
+                return
+            token, session = AUTH_STORE.create_session(user["id"])
+            self.auth_response(
+                200,
+                True,
+                "Login berhasil.",
+                {"user": session.user, "csrfToken": session.csrf_token},
+                extra_headers=[
+                    ("Set-Cookie", self.member_cookie(token, MEMBER_SESSION_ABSOLUTE_TTL))
+                ],
+            )
+            return
+
+        if path == "/api/v1/auth/logout":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            token = self.member_session_token()
+            session = AUTH_STORE.get_session(token, refresh=False)
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            AUTH_STORE.revoke_session(token)
+            self.auth_response(
+                200,
+                True,
+                "Logout berhasil.",
+                extra_headers=[("Set-Cookie", self.member_cookie("", 0))],
+            )
+            return
+
         if path == "/api/owner/login":
             try:
                 payload = self.read_json()
@@ -402,6 +665,42 @@ class BintangHandler(SimpleHTTPRequestHandler):
 
         self.send_error(404)
 
+    def do_PUT(self):
+        path = unquote(urlparse(self.path).path)
+
+        if path == "/api/v1/member/profile":
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                profile = AUTH_STORE.update_profile(session.user["id"], payload)
+            except AuthValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request profile tidak valid.")
+                return
+            except LookupError:
+                self.auth_response(404, False, "Profile member tidak ditemukan.")
+                return
+            self.auth_response(
+                200,
+                True,
+                "Profile berhasil diperbarui.",
+                {"profile": profile},
+            )
+            return
+
+        self.send_error(404)
+
     def save_upload(self, payload: object) -> str:
         if not isinstance(payload, dict):
             raise ValueError("Data upload tidak valid.")
@@ -435,6 +734,8 @@ class BintangHandler(SimpleHTTPRequestHandler):
 
 def main():
     DATA_ROOT.mkdir(parents=True, exist_ok=True)
+    AUTH_STORE.initialize()
+    AUTH_STORE.cleanup_expired_sessions()
     server = ThreadingHTTPServer((HOST, PORT), BintangHandler)
     print(f"Bintang Computer Feira server: http://{HOST}:{PORT}")
     if not OWNER_PASSWORD:

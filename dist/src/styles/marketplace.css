@@ -1,0 +1,48 @@
+@import url("./variables.css?v=20260614-auth-foundation");
+@import url("./typography.css?v=20260614-auth-foundation");
+@import url("./utilities.css?v=20260614-auth-foundation");
+@import url("./components.css?v=20260614-auth-foundation");
+@import url("./animations.css?v=20260614-auth-foundation");
+@import url("./responsive.css?v=20260614-auth-foundation");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.mf-body {
+  min-width: 320px;
+  margin: 0;
+  overflow-x: clip;
+  background:
+    linear-gradient(rgba(201, 154, 58, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(191, 221, 235, 0.1) 1px, transparent 1px),
+    var(--mf-soft-cream);
+  background-size: 72px 72px;
+}
+
+.mf-body img,
+.mf-body svg,
+.mf-body video {
+  display: block;
+  max-width: 100%;
+}
+
+.mf-body a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.mf-body button,
+.mf-body input,
+.mf-body textarea,
+.mf-body select {
+  font: inherit;
+}

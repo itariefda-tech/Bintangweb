@@ -1,0 +1,106 @@
+@media (min-width: 390px) {
+  :root {
+    --mf-gutter: 1.25rem;
+  }
+}
+
+@media (min-width: 640px) {
+  :root {
+    --mf-gutter: 1.5rem;
+  }
+
+  .mf-grid--products,
+  .mf-grid--news,
+  .mf-grid--dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mf-dashboard-card {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .mf-dashboard-card > span:last-child {
+    display: inline;
+    color: var(--mf-deep-gold);
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  .mf-footer__inner {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+}
+
+@media (min-width: 768px) {
+  .mf-hero__grid,
+  .mf-product-detail {
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  }
+
+  .mf-hero__visual {
+    min-height: 430px;
+  }
+
+  .mf-grid--tickets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mf-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .mf-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .mf-nav a {
+    color: var(--mf-muted);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .mf-nav a[aria-current="page"] {
+    color: var(--mf-deep-gold);
+  }
+
+  .mf-grid--products {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mf-grid--dashboard {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mf-profile-layout {
+    grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.8fr);
+  }
+
+  .mf-profile-summary {
+    position: sticky;
+    top: calc(var(--mf-header-height) + 1rem);
+  }
+}
+
+@media (max-width: 430px) {
+  .mf-action-row .mf-button,
+  .mf-auth-card .mf-button {
+    width: 100%;
+  }
+
+  .mf-brand small {
+    max-width: 130px;
+  }
+
+  .mf-account a {
+    display: none;
+  }
+
+  .mf-profile-actions .mf-button {
+    width: 100%;
+  }
+}

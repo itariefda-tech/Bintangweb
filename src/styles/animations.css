@@ -1,0 +1,26 @@
+@media (hover: hover) {
+  .mf-card,
+  .mf-button,
+  .mf-floating-cart {
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .mf-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--mf-shadow-premium);
+  }
+
+  .mf-button:hover,
+  .mf-floating-cart:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}

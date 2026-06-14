@@ -1,0 +1,5 @@
+2026/06/14-16:21:44.559 35cc Creating DB C:\Users\Administrator\OneDrive\Documents\GitHub\Bintangweb\tmp\profile-audit-data\edge\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/06/14-16:21:44.601 35cc Reusing MANIFEST C:\Users\Administrator\OneDrive\Documents\GitHub\Bintangweb\tmp\profile-audit-data\edge\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/06/14-16:21:46.492 364c Level-0 table #5: started
+2026/06/14-16:21:46.511 364c Level-0 table #5: 682669 bytes OK
+2026/06/14-16:21:46.524 364c Delete type=0 #3

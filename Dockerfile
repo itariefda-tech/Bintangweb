@@ -7,6 +7,7 @@ COPY scripts ./scripts
 COPY assets ./assets
 COPY css ./css
 COPY js ./js
+COPY src ./src
 COPY index.html owner-builder.html robots.txt sitemap.xml site.webmanifest ./
 
 RUN npm run build
@@ -15,7 +16,7 @@ FROM python:3.12-alpine
 
 WORKDIR /app
 
-COPY app.py ./
+COPY app.py marketplace_auth.py ./
 COPY --from=builder /app/dist/ ./public/
 
 RUN mkdir -p /app/data

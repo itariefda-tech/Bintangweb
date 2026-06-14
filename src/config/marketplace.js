@@ -1,0 +1,25 @@
+export const marketplaceConfig = {
+  routes: {
+    "/marketplace": "marketplace",
+    "/login": "login",
+    "/register": "register",
+    "/member": "member",
+    "/member/profile": "profile",
+    "/member/orders": "orders",
+    "/member/consultation": "consultation",
+    "/news": "news",
+    "/checkout": "checkout",
+  },
+  titles: {
+    marketplace: "Mini Marketplace",
+    product: "Detail Produk",
+    login: "Login Member",
+    register: "Register Member",
+    member: "Member Dashboard",
+    profile: "Profile Settings",
+    orders: "Order History",
+    consultation: "IT Consultation",
+    news: "Feira IT News",
+    checkout: "Checkout",
+  },
+};

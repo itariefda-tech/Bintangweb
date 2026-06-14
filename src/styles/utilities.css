@@ -1,0 +1,65 @@
+.mf-container {
+  width: calc(100% - var(--mf-gutter) - var(--mf-gutter));
+  max-width: var(--mf-container);
+  margin-inline: auto;
+}
+
+.mf-section {
+  padding-block: clamp(3rem, 10vw, 6rem);
+}
+
+.mf-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mf-stack--lg {
+  gap: 1.25rem;
+}
+
+.mf-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.mf-grid > *,
+.mf-hero__grid > *,
+.mf-product-detail > * {
+  min-width: 0;
+}
+
+.mf-card {
+  min-width: 0;
+  overflow: hidden;
+  border: var(--mf-border);
+  border-radius: var(--mf-radius-xl);
+  background: rgba(255, 249, 239, 0.84);
+  box-shadow: var(--mf-shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.mf-section-header {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 700px;
+  margin-bottom: 1.75rem;
+}
+
+.mf-section-header > p:last-child {
+  color: var(--mf-muted);
+}
+
+.mf-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mf-action-row > * {
+  max-width: 100%;
+}
+
+.mf-demo-note {
+  color: var(--mf-muted);
+  font-size: 0.78rem;
+}
