@@ -17,11 +17,12 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
 from marketplace_auth import (
+    AuthAccountStatusError,
     AuthStore,
     AuthValidationError,
     DuplicateEmailError,
 )
-from marketplace_catalog import CatalogStore
+from marketplace_catalog import CatalogStore, CatalogValidationError
 from marketplace_checkout import (
     CartStore,
     CheckoutValidationError,
@@ -143,6 +144,12 @@ DEFAULT_SETTINGS = {
 
 ALLOWED_UPLOADS = {
     "background": {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/gif": ".gif",
+    },
+    "product": {
         "image/jpeg": ".jpg",
         "image/png": ".png",
         "image/webp": ".webp",
@@ -650,6 +657,25 @@ class BintangHandler(SimpleHTTPRequestHandler):
             self.send_json(200, {"authenticated": self.is_owner()})
             return
 
+        if path == "/api/owner/catalog":
+            if not self.require_owner():
+                return
+            self.send_json(
+                200,
+                {
+                    "ok": True,
+                    "products": CATALOG_STORE.list_admin_products(),
+                    "categories": CATALOG_STORE.list_categories(),
+                },
+            )
+            return
+
+        if path == "/api/owner/members":
+            if not self.require_owner():
+                return
+            self.send_json(200, {"ok": True, "members": AUTH_STORE.list_members()})
+            return
+
         if path in {"/owner-builder", "/owner-builder/"}:
             if not self.is_owner():
                 self.send_error(404)
@@ -808,8 +834,8 @@ class BintangHandler(SimpleHTTPRequestHandler):
                     payload.get("name"),
                     payload.get("email"),
                     payload.get("password"),
+                    pending_approval=True,
                 )
-                token, session = AUTH_STORE.create_session(user["id"])
             except AuthValidationError as error:
                 self.auth_response(422, False, str(error), errors=error.errors)
                 return
@@ -822,11 +848,8 @@ class BintangHandler(SimpleHTTPRequestHandler):
             self.auth_response(
                 201,
                 True,
-                "Akun member berhasil dibuat.",
-                {"user": session.user, "csrfToken": session.csrf_token},
-                extra_headers=[
-                    ("Set-Cookie", self.member_cookie(token, MEMBER_SESSION_ABSOLUTE_TTL))
-                ],
+                "Registrasi berhasil. Akun menunggu persetujuan owner.",
+                {"user": user, "approvalRequired": user["status"] != "active"},
             )
             return
 
@@ -845,6 +868,9 @@ class BintangHandler(SimpleHTTPRequestHandler):
                     payload.get("email"),
                     payload.get("password"),
                 )
+            except AuthAccountStatusError as error:
+                self.auth_response(403, False, str(error))
+                return
             except AuthValidationError:
                 user = None
             except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
@@ -1175,10 +1201,87 @@ class BintangHandler(SimpleHTTPRequestHandler):
             self.send_json(200, {"ok": True, "url": public_url})
             return
 
+        if path == "/api/owner/products":
+            if not self.require_owner():
+                return
+            if not self.is_same_origin_request():
+                self.send_json(403, {"ok": False, "error": "Origin request tidak diizinkan."})
+                return
+            try:
+                product = CATALOG_STORE.save_product(self.read_json(MAX_AUTH_JSON_BODY))
+            except CatalogValidationError as error:
+                self.send_json(
+                    422,
+                    {"ok": False, "error": str(error), "errors": error.errors},
+                )
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.send_json(400, {"ok": False, "error": "Request produk tidak valid."})
+                return
+            self.send_json(201, {"ok": True, "product": product})
+            return
+
         self.send_error(404)
 
     def do_PUT(self):
         path = unquote(urlparse(self.path).path)
+
+        if path.startswith("/api/owner/products/"):
+            if not self.require_owner():
+                return
+            if not self.is_same_origin_request():
+                self.send_json(403, {"ok": False, "error": "Origin request tidak diizinkan."})
+                return
+            product_id = path.removeprefix("/api/owner/products/").strip("/")
+            try:
+                product = CATALOG_STORE.save_product(
+                    self.read_json(MAX_AUTH_JSON_BODY), product_id
+                )
+            except CatalogValidationError as error:
+                self.send_json(
+                    422,
+                    {"ok": False, "error": str(error), "errors": error.errors},
+                )
+                return
+            except LookupError as error:
+                self.send_json(404, {"ok": False, "error": str(error)})
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.send_json(400, {"ok": False, "error": "Request produk tidak valid."})
+                return
+            self.send_json(200, {"ok": True, "product": product})
+            return
+
+        if path.startswith("/api/owner/members/") and path.endswith("/status"):
+            if not self.require_owner():
+                return
+            if not self.is_same_origin_request():
+                self.send_json(403, {"ok": False, "error": "Origin request tidak diizinkan."})
+                return
+            member_id = (
+                path.removeprefix("/api/owner/members/")
+                .removesuffix("/status")
+                .strip("/")
+            )
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                member = AUTH_STORE.update_member_status(
+                    member_id, payload.get("status") if isinstance(payload, dict) else ""
+                )
+            except AuthValidationError as error:
+                self.send_json(
+                    422,
+                    {"ok": False, "error": str(error), "errors": error.errors},
+                )
+                return
+            except LookupError as error:
+                self.send_json(404, {"ok": False, "error": str(error)})
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.send_json(400, {"ok": False, "error": "Request member tidak valid."})
+                return
+            self.send_json(200, {"ok": True, "member": member})
+            return
 
         if path == "/api/v1/member/profile":
             if not self.is_same_origin_request():
@@ -1311,6 +1414,21 @@ class BintangHandler(SimpleHTTPRequestHandler):
 
     def do_DELETE(self):
         path = unquote(urlparse(self.path).path)
+        if path.startswith("/api/owner/products/"):
+            if not self.require_owner():
+                return
+            if not self.is_same_origin_request():
+                self.send_json(403, {"ok": False, "error": "Origin request tidak diizinkan."})
+                return
+            try:
+                product = CATALOG_STORE.archive_product(
+                    path.removeprefix("/api/owner/products/").strip("/")
+                )
+            except LookupError as error:
+                self.send_json(404, {"ok": False, "error": str(error)})
+                return
+            self.send_json(200, {"ok": True, "product": product})
+            return
         if path.startswith("/api/v1/cart/items/"):
             if not self.is_same_origin_request():
                 self.auth_response(403, False, "Origin request tidak diizinkan.")

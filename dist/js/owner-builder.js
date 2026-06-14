@@ -15,6 +15,8 @@ const audioLabel = document.querySelector("[data-audio-label]");
 const backgroundEditor = document.querySelector("[data-background-editor]");
 const clientList = document.querySelector("[data-client-list]");
 let settings;
+let catalog = { products: [], categories: [] };
+let members = [];
 let toastTimer;
 
 function showToast(message) {
@@ -31,9 +33,21 @@ async function request(url, options = {}) {
     ...options,
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || "Request gagal.");
+  if (!response.ok) {
+    const error = new Error(payload.error || "Request gagal.");
+    error.errors = payload.errors || {};
+    throw error;
+  }
   return payload;
 }
+
+const escapeHtml = (value = "") =>
+  String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
 function fileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -140,6 +154,97 @@ function collectForm() {
   settings.processAudioAutoplay = audioToggle.checked;
 }
 
+function resetProductForm() {
+  const form = document.querySelector("[data-product-form]");
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.status.value = "active";
+  form.querySelector('button[type="submit"]').textContent = "Simpan produk";
+}
+
+function populateProductForm(product) {
+  const form = document.querySelector("[data-product-form]");
+  form.elements.id.value = product.id;
+  form.elements.name.value = product.name;
+  form.elements.slug.value = product.slug;
+  form.elements.category.value = product.category.slug;
+  form.elements.badge.value = product.badge || "";
+  form.elements.shortDescription.value = product.shortDescription;
+  form.elements.description.value = product.description;
+  form.elements.price.value = product.price;
+  form.elements.stock.value = product.stock;
+  form.elements.status.value = product.status;
+  form.elements.featured.checked = product.featured;
+  form.elements.thumbnail.value = product.image;
+  form.elements.images.value = (product.images || []).join("\n");
+  form.querySelector('button[type="submit"]').textContent = "Perbarui produk";
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderProducts() {
+  const list = document.querySelector("[data-product-list]");
+  if (!catalog.products.length) {
+    list.innerHTML = '<p class="owner-note">Belum ada produk.</p>';
+    return;
+  }
+  list.innerHTML = catalog.products.map((product) => `
+    <article class="owner-record">
+      <div class="owner-record-heading">
+        <div>
+          <strong>${escapeHtml(product.name)}</strong>
+          <small>${escapeHtml(product.category.name)} · Rp ${Number(product.price).toLocaleString("id-ID")} · stok ${product.stock}</small>
+        </div>
+        <span class="owner-record-status" data-status="${product.status}">${product.status}</span>
+      </div>
+      <p class="owner-record-meta">${escapeHtml(product.shortDescription)}</p>
+      <div class="owner-record-actions">
+        <button class="owner-button owner-button-quiet" type="button" data-product-edit="${product.id}">Edit</button>
+        ${product.status === "archived" ? "" : `<button class="owner-button owner-button-quiet" type="button" data-product-archive="${product.id}">Arsipkan</button>`}
+        <a class="owner-button owner-button-quiet" href="/marketplace/product/${encodeURIComponent(product.slug)}" target="_blank" rel="noreferrer">Lihat</a>
+      </div>
+    </article>
+  `).join("");
+}
+
+async function loadCatalog() {
+  catalog = await request("/api/owner/catalog");
+  const select = document.querySelector("[data-product-category]");
+  select.innerHTML = catalog.categories.map((category) =>
+    `<option value="${category.slug}">${escapeHtml(category.name)}</option>`
+  ).join("");
+  renderProducts();
+}
+
+function renderMembers() {
+  const list = document.querySelector("[data-member-list]");
+  if (!members.length) {
+    list.innerHTML = '<p class="owner-note">Belum ada member terdaftar.</p>';
+    return;
+  }
+  list.innerHTML = members.map((member) => `
+    <article class="owner-record">
+      <div class="owner-record-heading">
+        <div>
+          <strong>${escapeHtml(member.name)}</strong>
+          <small>${escapeHtml(member.email)} · ${escapeHtml(member.role)}</small>
+        </div>
+        <span class="owner-record-status" data-status="${member.status}">${member.status === "inactive" ? "menunggu approval" : member.status}</span>
+      </div>
+      <div class="owner-record-actions">
+        ${member.status !== "active" ? `<button class="owner-button" type="button" data-member-status="${member.id}" data-status="active">Approve</button>` : ""}
+        ${member.role !== "super_admin" && member.status !== "inactive" ? `<button class="owner-button owner-button-quiet" type="button" data-member-status="${member.id}" data-status="inactive">Nonaktifkan</button>` : ""}
+        ${member.role !== "super_admin" && member.status !== "suspended" ? `<button class="owner-button owner-button-quiet" type="button" data-member-status="${member.id}" data-status="suspended">Suspend</button>` : ""}
+      </div>
+    </article>
+  `).join("");
+}
+
+async function loadMembers() {
+  const payload = await request("/api/owner/members");
+  members = payload.members || [];
+  renderMembers();
+}
+
 async function saveSettings() {
   collectForm();
   saveState.textContent = "Menyimpan perubahan...";
@@ -159,6 +264,7 @@ async function boot() {
   }
   settings = await request("/api/public-settings");
   populateForm();
+  await Promise.all([loadCatalog(), loadMembers()]);
 }
 
 document.querySelectorAll("[data-theme]").forEach((button) => {
@@ -199,6 +305,93 @@ document.querySelector("[data-video-upload]").addEventListener("click", async ()
 document.querySelector("[data-owner-logout]").addEventListener("click", async () => {
   await request("/api/owner/logout", { method: "POST", body: "{}" });
   window.location.replace("/");
+});
+
+document.querySelector("[data-product-reset]").addEventListener("click", resetProductForm);
+
+document.querySelector("[data-product-image-upload]").addEventListener("click", async () => {
+  const form = document.querySelector("[data-product-form]");
+  const file = document.querySelector("[data-product-image-file]").files[0];
+  try {
+    const url = await uploadFile(file, "product");
+    form.elements.thumbnail.value = url;
+    const images = form.elements.images.value
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (!images.includes(url)) images.unshift(url);
+    form.elements.images.value = images.join("\n");
+    showToast("Gambar produk berhasil diupload.");
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+document.querySelector("[data-product-form]").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const values = Object.fromEntries(new FormData(form));
+  const productId = values.id;
+  const payload = {
+    ...values,
+    price: Number(values.price),
+    stock: Number(values.stock),
+    featured: form.elements.featured.checked,
+    images: values.images.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
+  };
+  delete payload.id;
+  try {
+    saveState.textContent = "Menyimpan produk...";
+    await request(productId ? `/api/owner/products/${productId}` : "/api/owner/products", {
+      method: productId ? "PUT" : "POST",
+      body: JSON.stringify(payload),
+    });
+    await loadCatalog();
+    resetProductForm();
+    saveState.textContent = "Produk tersimpan di katalog.";
+    showToast(productId ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.");
+  } catch (error) {
+    saveState.textContent = "Produk belum tersimpan.";
+    showToast(error.message);
+  }
+});
+
+document.querySelector("[data-product-list]").addEventListener("click", async (event) => {
+  const edit = event.target.closest("[data-product-edit]");
+  const archive = event.target.closest("[data-product-archive]");
+  if (edit) {
+    const product = catalog.products.find((item) => item.id === edit.dataset.productEdit);
+    if (product) populateProductForm(product);
+    return;
+  }
+  if (!archive) return;
+  try {
+    await request(`/api/owner/products/${archive.dataset.productArchive}`, {
+      method: "DELETE",
+    });
+    await loadCatalog();
+    showToast("Produk dipindahkan ke arsip.");
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+document.querySelector("[data-member-list]").addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-member-status]");
+  if (!button) return;
+  button.disabled = true;
+  try {
+    await request(`/api/owner/members/${button.dataset.memberStatus}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status: button.dataset.status }),
+    });
+    await loadMembers();
+    showToast(button.dataset.status === "active" ? "Member berhasil disetujui." : "Status member diperbarui.");
+  } catch (error) {
+    button.disabled = false;
+    showToast(error.message);
+  }
 });
 
 boot().catch((error) => {

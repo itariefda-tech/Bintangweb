@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from marketplace_catalog import CatalogStore
+from marketplace_catalog import CatalogStore, CatalogValidationError
 
 
 class CatalogStoreTests(unittest.TestCase):
@@ -71,6 +71,63 @@ class CatalogStoreTests(unittest.TestCase):
             "business-laptop-foundation",
             [item["slug"] for item in self.store.list_products()],
         )
+
+    def test_owner_can_create_update_and_archive_product(self):
+        created = self.store.save_product(
+            {
+                "name": "Managed Router Pro",
+                "slug": "managed-router-pro",
+                "category": "network",
+                "shortDescription": "Router untuk kebutuhan kantor.",
+                "description": "Router bisnis dengan konfigurasi dan pendampingan.",
+                "price": 3200000,
+                "stock": 8,
+                "thumbnail": "/assets/images/service-network.webp",
+                "images": ["/assets/images/service-network.webp"],
+                "status": "active",
+                "featured": True,
+                "badge": "Owner managed",
+            }
+        )
+
+        self.assertEqual("managed-router-pro", created["slug"])
+        self.assertIn(
+            "managed-router-pro",
+            [item["slug"] for item in self.store.list_products()],
+        )
+
+        updated = self.store.save_product(
+            {
+                **created,
+                "category": "network",
+                "shortDescription": "Router kantor yang sudah diperbarui.",
+                "price": 3500000,
+            },
+            created["id"],
+        )
+        self.assertEqual(3500000, updated["price"])
+
+        archived = self.store.archive_product(created["id"])
+        self.assertEqual("archived", archived["status"])
+        self.assertIsNone(self.store.get_product("managed-router-pro"))
+
+    def test_owner_product_validation_rejects_duplicate_slug(self):
+        existing = self.store.get_product("business-laptop-foundation")
+        with self.assertRaises(CatalogValidationError) as context:
+            self.store.save_product(
+                {
+                    "name": "Duplicate Product",
+                    "slug": existing["slug"],
+                    "category": "network",
+                    "shortDescription": "Produk dengan slug duplikat.",
+                    "description": "Deskripsi produk dengan slug yang sudah digunakan.",
+                    "price": 100000,
+                    "stock": 1,
+                    "thumbnail": "/assets/images/service-network.webp",
+                    "status": "active",
+                }
+            )
+        self.assertIn("slug", context.exception.errors)
 
 
 if __name__ == "__main__":

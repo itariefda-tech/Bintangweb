@@ -42,6 +42,10 @@ class AuthValidationError(ValueError):
         self.errors = errors or {}
 
 
+class AuthAccountStatusError(PermissionError):
+    pass
+
+
 class DuplicateEmailError(ValueError):
     pass
 
@@ -343,7 +347,13 @@ class AuthStore:
             "role": row["role"],
         }
 
-    def register(self, name: object, email: object, password: object) -> dict:
+    def register(
+        self,
+        name: object,
+        email: object,
+        password: object,
+        pending_approval: bool = False,
+    ) -> dict:
         clean_name, clean_email, clean_password = self.validate_registration(
             name, email, password
         )
@@ -351,6 +361,11 @@ class AuthStore:
         user_id = str(uuid.uuid4())
         password_hash = self.hash_password(clean_password)
         role = "super_admin" if clean_email in self.super_admin_emails else "member"
+        status = (
+            "inactive"
+            if pending_approval and role != "super_admin"
+            else "active"
+        )
 
         try:
             with self.connection() as connection:
@@ -358,9 +373,18 @@ class AuthStore:
                     """
                     INSERT INTO users (
                         id, name, email, password_hash, role, status, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, 'active', ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (user_id, clean_name, clean_email, password_hash, role, now, now),
+                    (
+                        user_id,
+                        clean_name,
+                        clean_email,
+                        password_hash,
+                        role,
+                        status,
+                        now,
+                        now,
+                    ),
                 )
                 connection.execute(
                     """
@@ -386,6 +410,7 @@ class AuthStore:
             "name": clean_name,
             "email": clean_email,
             "role": role,
+            "status": status,
         }
 
     def authenticate(self, email: object, password: object) -> dict | None:
@@ -400,10 +425,14 @@ class AuthStore:
                 (clean_email,),
             ).fetchone()
 
-        if not row or row["status"] != "active":
+        if not row:
             return None
         if not self.verify_password(clean_password, row["password_hash"]):
             return None
+        if row["status"] == "inactive":
+            raise AuthAccountStatusError("Akun masih menunggu persetujuan owner.")
+        if row["status"] == "suspended":
+            raise AuthAccountStatusError("Akun sedang ditangguhkan.")
         return self.public_user(row)
 
     def create_session(self, user_id: str) -> tuple[str, MemberSession]:
@@ -818,6 +847,90 @@ class AuthStore:
             updated = dict(target)
             updated["role"] = clean_role
         return updated
+
+    def list_members(self) -> list[dict]:
+        with self.connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, name, email, role, status, created_at, updated_at
+                FROM users
+                ORDER BY
+                    CASE status WHEN 'inactive' THEN 0 WHEN 'active' THEN 1 ELSE 2 END,
+                    created_at DESC
+                """
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "name": row["name"],
+                "email": row["email"],
+                "role": row["role"],
+                "status": row["status"],
+                "createdAt": row["created_at"],
+                "updatedAt": row["updated_at"],
+            }
+            for row in rows
+        ]
+
+    def update_member_status(self, target_user_id: str, status: object) -> dict:
+        clean_status = str(status or "").strip()
+        if clean_status not in {"active", "inactive", "suspended"}:
+            raise AuthValidationError(
+                "Status member tidak valid.",
+                {"status": "Status member tidak valid."},
+            )
+        now = int(time.time())
+        with self.connection() as connection:
+            target = connection.execute(
+                """
+                SELECT id, name, email, role, status, created_at, updated_at
+                FROM users
+                WHERE id = ?
+                """,
+                (str(target_user_id or "").strip(),),
+            ).fetchone()
+            if not target:
+                raise LookupError("Member tidak ditemukan.")
+            if target["role"] == "super_admin" and clean_status != "active":
+                raise AuthValidationError("Akun super admin harus tetap aktif.")
+            connection.execute(
+                "UPDATE users SET status = ?, updated_at = ? WHERE id = ?",
+                (clean_status, now, target["id"]),
+            )
+            if clean_status != "active":
+                connection.execute(
+                    "DELETE FROM member_sessions WHERE user_id = ?", (target["id"],)
+                )
+            connection.execute(
+                """
+                INSERT INTO member_notifications (
+                    id, user_id, title, message, kind, action_url, created_at
+                ) VALUES (?, ?, ?, ?, 'account', '/member', ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    target["id"],
+                    "Status akun diperbarui",
+                    (
+                        "Akun Anda telah disetujui dan sekarang aktif."
+                        if clean_status == "active"
+                        else "Status akun Anda sekarang: " + clean_status + "."
+                    ),
+                    now,
+                ),
+            )
+            updated = dict(target)
+            updated["status"] = clean_status
+            updated["updated_at"] = now
+        return {
+            "id": updated["id"],
+            "name": updated["name"],
+            "email": updated["email"],
+            "role": updated["role"],
+            "status": updated["status"],
+            "createdAt": updated["created_at"],
+            "updatedAt": updated["updated_at"],
+        }
 
     def cleanup_expired_sessions(self) -> None:
         now = int(time.time())

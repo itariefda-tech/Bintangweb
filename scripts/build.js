@@ -12,6 +12,7 @@ const files = {
     path.join(root, "css", "style.css"),
     path.join(root, "css", "components.css"),
     path.join(root, "css", "responsive.css"),
+    path.join(root, "src", "styles", "shared-site-header.css"),
   ],
   js: path.join(root, "js", "app.js"),
   ownerCss: path.join(root, "css", "owner-builder.css"),
@@ -136,7 +137,7 @@ fs.writeFileSync(path.join(dist, "js", jsFile), minifiedJs);
 let html = fs.readFileSync(files.html, "utf8");
 html = html
   .replace(
-    /<link rel="stylesheet" href="\.\/css\/style\.css(?:\?[^"]*)?">\s*<link rel="stylesheet" href="\.\/css\/components\.css(?:\?[^"]*)?">\s*<link rel="stylesheet" href="\.\/css\/responsive\.css(?:\?[^"]*)?">/,
+    /<link rel="stylesheet" href="\.\/css\/style\.css(?:\?[^"]*)?">\s*<link rel="stylesheet" href="\.\/css\/components\.css(?:\?[^"]*)?">\s*<link rel="stylesheet" href="\.\/css\/responsive\.css(?:\?[^"]*)?">\s*<link rel="stylesheet" href="\.\/src\/styles\/shared-site-header\.css(?:\?[^"]*)?">/,
     `<link rel="stylesheet" href="./css/${cssFile}">`
   )
   .replace(

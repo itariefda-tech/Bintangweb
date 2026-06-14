@@ -4,7 +4,12 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from marketplace_auth import AuthStore, AuthValidationError, DuplicateEmailError
+from marketplace_auth import (
+    AuthAccountStatusError,
+    AuthStore,
+    AuthValidationError,
+    DuplicateEmailError,
+)
 
 
 class AuthStoreTests(unittest.TestCase):
@@ -172,6 +177,27 @@ class AuthStoreTests(unittest.TestCase):
             store.update_user_role(other["id"], member["id"], "member")
         with self.assertRaises(AuthValidationError):
             store.update_user_role(owner["id"], owner["id"], "admin")
+
+    def test_pending_member_requires_owner_approval(self):
+        member = self.store.register(
+            "Pending Member",
+            "pending@example.com",
+            "securepass123",
+            pending_approval=True,
+        )
+        self.assertEqual("inactive", member["status"])
+        with self.assertRaises(AuthAccountStatusError):
+            self.store.authenticate("pending@example.com", "securepass123")
+
+        listed = self.store.list_members()
+        self.assertEqual("inactive", listed[0]["status"])
+        approved = self.store.update_member_status(member["id"], "active")
+
+        self.assertEqual("active", approved["status"])
+        self.assertEqual(
+            member["id"],
+            self.store.authenticate("pending@example.com", "securepass123")["id"],
+        )
 
     def test_schema_migrations_are_versioned_and_idempotent(self):
         user = self.store.register("Feira Member", "member@example.com", "securepass123")

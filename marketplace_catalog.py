@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 import time
 import uuid
+import re
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -119,6 +120,12 @@ DEFAULT_PRODUCTS = [
         ],
     },
 ]
+
+
+class CatalogValidationError(ValueError):
+    def __init__(self, message: str, errors: dict[str, str] | None = None):
+        super().__init__(message)
+        self.errors = errors or {}
 
 
 class CatalogStore:
@@ -304,6 +311,114 @@ class CatalogStore:
             },
         }
 
+    @staticmethod
+    def _admin_product(row: sqlite3.Row, images: list[str]) -> dict:
+        product = CatalogStore._public_product(row)
+        product.update(
+            {
+                "id": row["id"],
+                "status": row["status"],
+                "images": images,
+                "createdAt": row["created_at"],
+                "updatedAt": row["updated_at"],
+            }
+        )
+        return product
+
+    @staticmethod
+    def _clean_product_payload(payload: object) -> dict:
+        if not isinstance(payload, dict):
+            raise CatalogValidationError("Data produk tidak valid.")
+
+        text_limits = {
+            "name": 160,
+            "slug": 160,
+            "shortDescription": 280,
+            "description": 5000,
+            "thumbnail": 500,
+            "badge": 80,
+            "category": 120,
+        }
+        cleaned = {
+            key: " ".join(
+                str(
+                    payload.get(key)
+                    or (payload.get("image") if key == "thumbnail" else "")
+                ).strip().split()
+            )
+            if key not in {"description"}
+            else str(payload.get(key) or "").strip()
+            for key in text_limits
+        }
+        errors = {}
+        if len(cleaned["name"]) < 3 or len(cleaned["name"]) > text_limits["name"]:
+            errors["name"] = "Nama produk harus 3-160 karakter."
+        if not cleaned["slug"]:
+            cleaned["slug"] = re.sub(
+                r"[^a-z0-9]+", "-", cleaned["name"].lower()
+            ).strip("-")
+        if (
+            not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", cleaned["slug"])
+            or len(cleaned["slug"]) > text_limits["slug"]
+        ):
+            errors["slug"] = "Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung."
+        if not cleaned["category"]:
+            errors["category"] = "Kategori wajib dipilih."
+        if not cleaned["shortDescription"] or len(cleaned["shortDescription"]) > 280:
+            errors["shortDescription"] = "Ringkasan wajib diisi, maksimal 280 karakter."
+        if not cleaned["description"] or len(cleaned["description"]) > 5000:
+            errors["description"] = "Deskripsi wajib diisi, maksimal 5000 karakter."
+        if not cleaned["thumbnail"] or len(cleaned["thumbnail"]) > 500:
+            errors["thumbnail"] = "URL gambar utama wajib diisi."
+        if len(cleaned["badge"]) > 80:
+            errors["badge"] = "Badge maksimal 80 karakter."
+
+        try:
+            price = int(payload.get("price"))
+            if price < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            errors["price"] = "Harga harus berupa angka nol atau lebih."
+            price = 0
+        try:
+            stock = int(payload.get("stock"))
+            if stock < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            errors["stock"] = "Stok harus berupa angka nol atau lebih."
+            stock = 0
+
+        status = str(payload.get("status") or "active").strip()
+        if status not in {"active", "inactive", "out_of_stock", "archived"}:
+            errors["status"] = "Status produk tidak valid."
+        if stock == 0 and status == "active":
+            status = "out_of_stock"
+        elif stock > 0 and status == "out_of_stock":
+            status = "active"
+
+        raw_images = payload.get("images")
+        if isinstance(raw_images, str):
+            raw_images = raw_images.splitlines()
+        images = []
+        if isinstance(raw_images, list):
+            for image in raw_images:
+                clean_image = str(image or "").strip()
+                if clean_image and clean_image not in images:
+                    images.append(clean_image[:500])
+        if cleaned["thumbnail"] and cleaned["thumbnail"] not in images:
+            images.insert(0, cleaned["thumbnail"])
+
+        if errors:
+            raise CatalogValidationError("Data produk belum valid.", errors)
+        return {
+            **cleaned,
+            "price": price,
+            "stock": stock,
+            "status": status,
+            "featured": 1 if bool(payload.get("featured")) else 0,
+            "images": images[:10],
+        }
+
     def list_categories(self) -> list[dict]:
         with self.connection() as connection:
             rows = connection.execute(
@@ -414,3 +529,168 @@ class CatalogStore:
         product["images"] = images or [product["image"]]
         product["related"] = [self._public_product(item) for item in related_rows]
         return product
+
+    def list_admin_products(self) -> list[dict]:
+        with self.connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT p.*, c.name AS category_name, c.slug AS category_slug
+                FROM products p
+                JOIN product_categories c ON c.id = p.category_id
+                ORDER BY p.updated_at DESC, p.name ASC
+                """
+            ).fetchall()
+            products = []
+            for row in rows:
+                images = [
+                    image["image_path"]
+                    for image in connection.execute(
+                        """
+                        SELECT image_path
+                        FROM product_images
+                        WHERE product_id = ?
+                        ORDER BY sort_order, id
+                        """,
+                        (row["id"],),
+                    ).fetchall()
+                ]
+                products.append(self._admin_product(row, images))
+        return products
+
+    def save_product(self, payload: object, product_id: str | None = None) -> dict:
+        fields = self._clean_product_payload(payload)
+        now = int(time.time())
+        clean_id = str(product_id or "").strip()
+        with self.connection() as connection:
+            category = connection.execute(
+                "SELECT id FROM product_categories WHERE slug = ? AND status = 'active'",
+                (fields["category"],),
+            ).fetchone()
+            if not category:
+                raise CatalogValidationError(
+                    "Kategori produk tidak ditemukan.",
+                    {"category": "Kategori produk tidak ditemukan."},
+                )
+
+            duplicate = connection.execute(
+                "SELECT id FROM products WHERE slug = ? AND id != ?",
+                (fields["slug"], clean_id),
+            ).fetchone()
+            if duplicate:
+                raise CatalogValidationError(
+                    "Slug produk sudah digunakan.",
+                    {"slug": "Slug produk sudah digunakan."},
+                )
+
+            if clean_id:
+                existing = connection.execute(
+                    "SELECT id, created_at FROM products WHERE id = ?", (clean_id,)
+                ).fetchone()
+                if not existing:
+                    raise LookupError("Produk tidak ditemukan.")
+                connection.execute(
+                    """
+                    UPDATE products
+                    SET category_id = ?, name = ?, slug = ?, short_description = ?,
+                        description = ?, price = ?, stock = ?, thumbnail = ?,
+                        status = ?, featured = ?, badge = ?, updated_at = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        category["id"],
+                        fields["name"],
+                        fields["slug"],
+                        fields["shortDescription"],
+                        fields["description"],
+                        fields["price"],
+                        fields["stock"],
+                        fields["thumbnail"],
+                        fields["status"],
+                        fields["featured"],
+                        fields["badge"],
+                        now,
+                        clean_id,
+                    ),
+                )
+                saved_id = clean_id
+            else:
+                saved_id = str(uuid.uuid4())
+                connection.execute(
+                    """
+                    INSERT INTO products (
+                        id, category_id, name, slug, short_description, description,
+                        price, stock, thumbnail, status, featured, badge,
+                        created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        saved_id,
+                        category["id"],
+                        fields["name"],
+                        fields["slug"],
+                        fields["shortDescription"],
+                        fields["description"],
+                        fields["price"],
+                        fields["stock"],
+                        fields["thumbnail"],
+                        fields["status"],
+                        fields["featured"],
+                        fields["badge"],
+                        now,
+                        now,
+                    ),
+                )
+
+            connection.execute(
+                "DELETE FROM product_images WHERE product_id = ?", (saved_id,)
+            )
+            for index, image in enumerate(fields["images"]):
+                connection.execute(
+                    """
+                    INSERT INTO product_images (id, product_id, image_path, sort_order)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (str(uuid.uuid4()), saved_id, image, index),
+                )
+            row = connection.execute(
+                """
+                SELECT p.*, c.name AS category_name, c.slug AS category_slug
+                FROM products p
+                JOIN product_categories c ON c.id = p.category_id
+                WHERE p.id = ?
+                """,
+                (saved_id,),
+            ).fetchone()
+        return self._admin_product(row, fields["images"])
+
+    def archive_product(self, product_id: str) -> dict:
+        clean_id = str(product_id or "").strip()
+        now = int(time.time())
+        with self.connection() as connection:
+            updated = connection.execute(
+                """
+                UPDATE products
+                SET status = 'archived', featured = 0, updated_at = ?
+                WHERE id = ?
+                """,
+                (now, clean_id),
+            )
+            if updated.rowcount != 1:
+                raise LookupError("Produk tidak ditemukan.")
+            row = connection.execute(
+                """
+                SELECT p.*, c.name AS category_name, c.slug AS category_slug
+                FROM products p
+                JOIN product_categories c ON c.id = p.category_id
+                WHERE p.id = ?
+                """,
+                (clean_id,),
+            ).fetchone()
+            images = [
+                image["image_path"]
+                for image in connection.execute(
+                    "SELECT image_path FROM product_images WHERE product_id = ? ORDER BY sort_order",
+                    (clean_id,),
+                ).fetchall()
+            ]
+        return self._admin_product(row, images)

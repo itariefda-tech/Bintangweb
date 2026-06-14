@@ -1,4 +1,5 @@
 import { renderMarketplaceLayout } from "../layouts/MarketplaceLayout.js";
+import { bindSiteHeader } from "../components/navigation/SiteHeader.js";
 import { renderProductCard } from "../components/cards/ProductCard.js";
 import { renderMemberDashboardCard } from "../components/cards/MemberDashboardCard.js";
 import { renderConsultationTicketCard } from "../components/cards/ConsultationTicketCard.js";
@@ -221,6 +222,10 @@ function renderProductDetail(session, product) {
 
 function renderAuth(type) {
   const isLogin = type === "login";
+  const approvalNotice = isLogin
+    && new URLSearchParams(window.location.search).get("registered") === "1"
+    ? "Registrasi berhasil. Silakan tunggu persetujuan owner sebelum login."
+    : "";
   return `
     <section class="mf-section">
       <div class="mf-container mf-auth-wrap">
@@ -237,7 +242,7 @@ function renderAuth(type) {
             <label class="mf-field">Email<input type="email" name="email" autocomplete="email" maxlength="254" required placeholder="nama@perusahaan.com"><small data-field-error="email"></small></label>
             <label class="mf-field">Password<input type="password" name="password" autocomplete="${isLogin ? "current-password" : "new-password"}" minlength="8" maxlength="128" required placeholder="Minimum 8 karakter"><small data-field-error="password"></small></label>
             <button class="mf-button mf-button--primary" type="submit">${isLogin ? "Masuk ke member area" : "Buat akun member"}</button>
-            <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+            <p class="mf-form-status" data-form-status role="status" aria-live="polite"${approvalNotice ? ' data-state="success"' : ""}>${approvalNotice}</p>
           </form>
           <p class="mf-form-help">${isLogin ? 'Belum punya akun? <a href="/register">Daftar member</a>. <a href="/forgot-password">Lupa password?</a>' : 'Sudah terdaftar? <a href="/login">Masuk di sini</a>.'}</p>
         </div>
@@ -619,6 +624,11 @@ function bindAuthForm() {
     try {
       if (form.dataset.authForm === "register") {
         await registerMember(values);
+        status.textContent = "Registrasi berhasil. Tunggu persetujuan owner sebelum login.";
+        status.dataset.state = "success";
+        form.reset();
+        window.setTimeout(() => window.location.assign("/login?registered=1"), 1400);
+        return;
       } else {
         await loginMember(values);
       }
@@ -1125,6 +1135,7 @@ async function bootstrap() {
     cartCount: cart.itemCount || 0,
   });
   document.title = `${marketplaceConfig.titles[route] || "Marketplace"} | Feira`;
+  bindSiteHeader();
   bindAuthForm();
   bindRecoveryForm();
   bindLogout(session);
