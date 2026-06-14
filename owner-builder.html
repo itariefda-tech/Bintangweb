@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>Owner Builder | Bintang Computer Feira</title>
-    <link rel="stylesheet" href="./css/owner-builder.css">
+    <link rel="stylesheet" href="./css/owner-builder.css?v=catalog-grid-20260614">
     <script src="./js/owner-builder.js" defer></script>
   </head>
   <body>
@@ -156,6 +156,81 @@
           <span aria-hidden="true"></span>
           <strong data-audio-label>Aktif</strong>
         </label>
+      </section>
+
+      <section class="owner-panel">
+        <div class="owner-panel-heading">
+          <div>
+            <p class="owner-index">07 / Marketplace Catalog</p>
+            <h2>Produk yang dijual</h2>
+          </div>
+          <span class="owner-badge owner-badge-live">Live catalog</span>
+        </div>
+        <div class="owner-catalog-layout">
+          <form class="owner-product-form" data-product-form>
+            <input type="hidden" name="id">
+            <fieldset class="owner-product-section owner-product-section-info">
+              <legend>Informasi produk</legend>
+              <div class="owner-product-grid owner-product-info-grid">
+                <label>Nama produk<input type="text" name="name" minlength="3" maxlength="160" required></label>
+                <label>Slug<input type="text" name="slug" maxlength="160" placeholder="otomatis-dari-nama"></label>
+                <label>Kategori<select name="category" required data-product-category></select></label>
+                <label>Badge<input type="text" name="badge" maxlength="80" placeholder="Business ready"></label>
+                <label>Ringkasan<textarea name="shortDescription" rows="2" maxlength="280" required></textarea></label>
+                <label>Deskripsi lengkap<textarea name="description" rows="2" maxlength="5000" required></textarea></label>
+              </div>
+            </fieldset>
+            <fieldset class="owner-product-section owner-product-section-pricing">
+              <legend>Harga dan status</legend>
+              <div class="owner-product-grid owner-product-pricing-grid">
+                <label>Harga (IDR)<input type="number" name="price" min="0" step="1" required></label>
+                <label>Stok<input type="number" name="stock" min="0" step="1" required></label>
+                <label>Status
+                  <select name="status">
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Nonaktif</option>
+                    <option value="out_of_stock">Stok habis</option>
+                    <option value="archived">Arsip</option>
+                  </select>
+                </label>
+                <label class="owner-check"><input type="checkbox" name="featured"> Featured product</label>
+              </div>
+            </fieldset>
+            <fieldset class="owner-product-section owner-product-section-media">
+              <legend>Media produk</legend>
+              <div class="owner-product-grid owner-product-media-grid">
+                <label class="owner-media-url">URL gambar utama<input type="text" name="thumbnail" required placeholder="/assets/images/produk.webp"></label>
+                <label class="owner-file owner-media-file">
+                  <span>Pilih gambar produk</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-product-image-file>
+                </label>
+                <button class="owner-button owner-button-quiet" type="button" data-product-image-upload>Upload gambar</button>
+                <label class="owner-media-gallery">Galeri gambar<textarea name="images" rows="3" placeholder="Satu URL gambar per baris"></textarea></label>
+              </div>
+            </fieldset>
+            <div class="owner-form-actions">
+              <button class="owner-button" type="submit">Simpan produk</button>
+              <button class="owner-button owner-button-quiet" type="button" data-product-reset>Produk baru</button>
+            </div>
+          </form>
+          <div class="owner-record-list" data-product-list>
+            <p class="owner-note">Memuat katalog...</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="owner-panel">
+        <div class="owner-panel-heading">
+          <div>
+            <p class="owner-index">08 / Member Approval</p>
+            <h2>Persetujuan member</h2>
+          </div>
+          <span class="owner-badge owner-badge-live">Owner credential</span>
+        </div>
+        <p class="owner-note">Registrasi baru tidak dapat login sebelum disetujui owner.</p>
+        <div class="owner-record-list owner-member-list" data-member-list>
+          <p class="owner-note">Memuat member...</p>
+        </div>
       </section>
 
       <div class="owner-actions">
