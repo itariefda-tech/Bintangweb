@@ -416,6 +416,45 @@ projectFilms.forEach((film) => {
     }, 5200);
   }
 
+  function showPoster() {
+    film.classList.remove("is-playing");
+    video.pause();
+    video.hidden = true;
+    playButton.hidden = false;
+  }
+
+  function showVideo() {
+    film.classList.add("is-playing");
+    video.hidden = false;
+    playButton.hidden = true;
+  }
+
+  function waitForVideoMetadata() {
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      let timer;
+      const cleanup = () => {
+        window.clearTimeout(timer);
+        video.removeEventListener("loadedmetadata", handleReady);
+        video.removeEventListener("error", handleError);
+      };
+      const handleReady = () => {
+        cleanup();
+        resolve();
+      };
+      const handleError = () => {
+        cleanup();
+        reject(new Error("Video tidak dapat dibaca."));
+      };
+      timer = window.setTimeout(handleError, 8000);
+      video.addEventListener("loadedmetadata", handleReady, { once: true });
+      video.addEventListener("error", handleError, { once: true });
+    });
+  }
+
   playButton.addEventListener("click", async () => {
     const videoSource = film.dataset.videoSrc?.trim();
     if (!videoSource) {
@@ -423,20 +462,20 @@ projectFilms.forEach((film) => {
       return;
     }
 
-    if (!video.src) {
+    showVideo();
+
+    if (video.currentSrc !== videoSource && video.getAttribute("src") !== videoSource) {
       video.src = videoSource;
       video.load();
     }
 
     processAudio?.pause();
-    video.hidden = false;
-    playButton.hidden = true;
 
     try {
+      await waitForVideoMetadata();
       await video.play();
     } catch {
-      playButton.hidden = false;
-      video.hidden = true;
+      showPoster();
       showStatus("Video belum dapat diputar. Silakan coba kembali.");
     }
   });
@@ -444,8 +483,7 @@ projectFilms.forEach((film) => {
   video.addEventListener("play", () => processAudio?.pause());
 
   video.addEventListener("ended", () => {
-    playButton.hidden = false;
-    video.hidden = true;
+    showPoster();
     showStatus("Film selesai. Putar kembali atau diskusikan sistem berikutnya bersama kami.");
   });
 
