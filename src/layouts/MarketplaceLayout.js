@@ -4,7 +4,7 @@ import { renderSiteHeader } from "../components/navigation/SiteHeader.js";
 export function renderMarketplaceLayout({ content, activeRoute, session, unreadCount = 0, cartCount = 0 }) {
   const isActive = (route) => activeRoute === route ? ' aria-current="page"' : "";
   const memberRoutes = ["member", "profile", "notifications", "orders"];
-  const adminRoutes = ["admin", "admin-consultation", "admin-orders", "admin-products"];
+  const adminRoutes = ["admin", "admin-consultation", "admin-orders", "admin-products", "admin-members"];
   const isAdmin = ["admin", "super_admin"].includes(session?.user?.role);
   const isMemberActive = memberRoutes.includes(activeRoute)
     ? ' aria-current="page"'

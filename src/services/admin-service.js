@@ -87,6 +87,35 @@ export async function getAdminProducts() {
   return data.products || [];
 }
 
+export async function getAdminMembers() {
+  const data = await request("/api/v1/admin/members");
+  return data.members || [];
+}
+
+export async function updateAdminMemberStatus(memberId, status, csrfToken) {
+  const data = await request(
+    `/api/v1/admin/members/${encodeURIComponent(memberId)}/status`,
+    {
+      method: "PUT",
+      headers: { "X-CSRF-Token": csrfToken },
+      body: JSON.stringify({ status }),
+    },
+  );
+  return data.member;
+}
+
+export async function updateAdminMemberRole(memberId, role, csrfToken) {
+  const data = await request(
+    `/api/v1/admin/members/${encodeURIComponent(memberId)}/role`,
+    {
+      method: "PUT",
+      headers: { "X-CSRF-Token": csrfToken },
+      body: JSON.stringify({ role }),
+    },
+  );
+  return data.user;
+}
+
 export async function saveAdminProduct(product, csrfToken, productId = "") {
   const data = await request(
     productId

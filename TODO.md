@@ -2,10 +2,10 @@
 ## Mini Marketplace Feira Development Tracker
 
 ### Active Phase
-PHASE 8 - ADMIN ECOSYSTEM
+PHASE 9 - VISUAL POLISH & CINEMATIC EXPERIENCE
 
 ### Current Focus
-Membangun control center Phase 8 secara bertahap. Dashboard, consultation, order, product, dan owner-credential News Management sudah aktif.
+Phase 9 diselesaikan dengan polish visual marketplace, rollback background uji visual, widget hero baru, dan skeleton loading.
 
 ### Last Progress
 - Route `/admin` dan `/admin/consultation` dilindungi untuk role `admin` dan `super_admin`.
@@ -19,7 +19,11 @@ Membangun control center Phase 8 secara bertahap. Dashboard, consultation, order
 - Owner builder tidak lagi diperlukan untuk operasi katalog harian.
 - News Management tersedia sebagai section khusus `09 / Feira IT News` pada Owner Tool Builder.
 - Owner dapat mengelola kategori, draft/publish/archive, featured, trending score, reading time, cover, dan preview artikel.
+- Member management admin tersedia untuk list akun, approval/status, suspend, dan role update super admin.
 - Navigation admin tersedia pada desktop dan mobile sesuai role.
+- Background header dan marketplace hero Phase 9 dikembalikan ke background semula setelah hasil uji visual tidak cocok.
+- Widget hero marketplace diganti dengan signal map baru, bukan widget visual panel/orb sebelumnya.
+- Skeleton loading awal tersedia agar transisi fetch data terasa lebih premium.
 - Source dan production build memakai service admin modular.
 - Seluruh test suite lulus 48 test.
 
@@ -28,6 +32,7 @@ Membangun control center Phase 8 secara bertahap. Dashboard, consultation, order
 - `marketplace_admin.py`
 - `marketplace_consultation.py`
 - `src/app/marketplace-app.js`
+- `src/components/navigation/SiteHeader.js`
 - `src/layouts/MarketplaceLayout.js`
 - `src/services/admin-service.js`
 - `src/styles/components.css`
@@ -39,12 +44,11 @@ Membangun control center Phase 8 secara bertahap. Dashboard, consultation, order
 ### Issues / Notes
 - Endpoint product owner lama masih tersedia sebagai compatibility path sementara.
 - News management sengaja memakai credential owner, bukan role admin.
-- Member management belum memiliki UI admin baru.
 - Logging system foundation masih terbuka dari Phase 1.
 - Security hardening menyeluruh tetap menjadi scope Phase 10.
 
 ### Next Step
-- Lanjutkan member management.
+- Lanjutkan Phase 10 security hardening.
 
 ### Checklist
 - [x] Buat protected admin routes.
@@ -67,4 +71,7 @@ Membangun control center Phase 8 secara bertahap. Dashboard, consultation, order
 - [x] Buat category create dan edit.
 - [x] Buat article draft, publish, edit, preview, dan archive.
 - [x] Buat cover upload dengan file signature validation.
-- [ ] Buat member management.
+- [x] Buat member management.
+- [x] Rollback background header dan marketplace hero ke background semula.
+- [x] Ganti widget hero lama dengan widget signal map baru.
+- [x] Tuntaskan Phase 9 visual polish dan skeleton loading.

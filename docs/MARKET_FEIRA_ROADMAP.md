@@ -10,7 +10,7 @@
 
 ## Current Position
 
-Phase 8 - Admin Ecosystem active. Dashboard, order, product, consultation, and owner-credential news management are complete.
+Phase 9 - Visual Polish & Cinematic Experience complete. Phase 8 member management dependency is also complete.
 
 ## Main Objective
 
@@ -397,7 +397,7 @@ Membangun admin dashboard ecosystem.
 * [x] Product management
 * [x] Consultation management
 * [x] News management
-* [ ] Member management
+* [x] Member management
 
 ## Output / Result - Admin Foundation (2026-06-15)
 
@@ -416,6 +416,8 @@ Membangun admin dashboard ecosystem.
 * Editor news menyediakan category create/edit, article create/edit, draft/published/archived, featured, trending score, reading time, cover upload, preview, dan archive.
 * API `/api/owner/news*` hanya tersedia untuk sesi owner dan mutasi dilindungi same-origin.
 * Cover JPG, PNG, WebP, atau GIF dibatasi 10MB dan divalidasi berdasarkan MIME serta file signature.
+* Route `/admin/members` menyediakan list member, approval/status, suspend, dan role update dengan role super admin.
+* API `/api/v1/admin/members*` memakai session admin, same-origin, CSRF, dan menjaga rule role existing.
 * Navigasi desktop dan mobile menampilkan entry admin hanya untuk role yang diizinkan.
 * Unit test mencakup KPI, permission, consultation, order fulfillment, product CRUD, serta category/article news lifecycle.
 
@@ -429,22 +431,29 @@ Menjadikan platform terasa premium dan berbeda.
 
 ## Tasks
 
-* [ ] Cinematic hero
-* [ ] Process background implementation
-* [ ] Floating navbar
-* [ ] Premium footer
-* [ ] Soft animation
-* [ ] Glassmorphism polish
-* [ ] Decorative system
+* [x] Cinematic hero
+* [x] Process background implementation
+* [x] Floating navbar
+* [x] Premium footer
+* [x] Soft animation
+* [x] Glassmorphism polish
+* [x] Decorative system
 
 ---
 
 ## UX Enhancement
 
-* [ ] Hover interaction
-* [ ] Skeleton loading
-* [ ] Smooth transition
-* [ ] Premium scrolling experience
+* [x] Hover interaction
+* [x] Skeleton loading
+* [x] Smooth transition
+* [x] Premium scrolling experience
+
+## Output / Result - Visual Polish & Cinematic Experience (2026-06-15)
+
+* Shared floating header dan hero marketplace dikembalikan ke background semula setelah uji visual aset baru tidak cocok.
+* Widget visual lama pada hero marketplace sudah dihapus dan diganti dengan signal map baru yang berbeda dari panel/orb sebelumnya.
+* Marketplace memakai skeleton loading awal untuk transisi data fetch yang lebih halus.
+* Floating header, premium footer, soft animation, glassmorphism card, decorative layer, hover interaction, dan smooth scrolling dipertahankan sebagai sistem polish Phase 9.
 
 ---
 

@@ -93,6 +93,7 @@ MARKETPLACE_ROUTES = {
     "/admin/consultation",
     "/admin/orders",
     "/admin/products",
+    "/admin/members",
 }
 PROTECTED_MEMBER_ROUTES = {
     "/member",
@@ -107,6 +108,7 @@ PROTECTED_ADMIN_ROUTES = {
     "/admin/consultation",
     "/admin/orders",
     "/admin/products",
+    "/admin/members",
 }
 
 HOST = os.environ.get("HOST", "127.0.0.1")
@@ -835,6 +837,23 @@ class BintangHandler(SimpleHTTPRequestHandler):
                 True,
                 "Produk admin tersedia.",
                 {"products": products, "count": len(products)},
+            )
+            return
+
+        if path == "/api/v1/admin/members":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if session.user.get("role") not in {"admin", "super_admin"}:
+                self.auth_response(403, False, "Hanya admin yang dapat membuka member management.")
+                return
+            members = AUTH_STORE.list_members()
+            self.auth_response(
+                200,
+                True,
+                "Member admin tersedia.",
+                {"members": members, "count": len(members)},
             )
             return
 
@@ -2026,6 +2045,41 @@ class BintangHandler(SimpleHTTPRequestHandler):
                 self.auth_response(400, False, "Request role tidak valid.")
                 return
             self.auth_response(200, True, "Role member berhasil diperbarui.", {"user": user})
+            return
+
+        if path.startswith("/api/v1/admin/members/") and path.endswith("/status"):
+            if not self.is_same_origin_request():
+                self.auth_response(403, False, "Origin request tidak diizinkan.")
+                return
+            session = self.member_session(refresh=False)
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            if session.user.get("role") not in {"admin", "super_admin"}:
+                self.auth_response(403, False, "Hanya admin yang dapat mengubah status member.")
+                return
+            if not self.valid_member_csrf(session):
+                self.auth_response(403, False, "CSRF token tidak valid.")
+                return
+            target_id = (
+                path.removeprefix("/api/v1/admin/members/")
+                .removesuffix("/status")
+                .strip("/")
+            )
+            try:
+                payload = self.read_json(MAX_AUTH_JSON_BODY)
+                status = payload.get("status") if isinstance(payload, dict) else ""
+                member = AUTH_STORE.update_member_status(target_id, status)
+            except AuthValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
+            except LookupError:
+                self.auth_response(404, False, "Member tidak ditemukan.")
+                return
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+                self.auth_response(400, False, "Request status member tidak valid.")
+                return
+            self.auth_response(200, True, "Status member berhasil diperbarui.", {"member": member})
             return
 
         if path.startswith("/api/v1/admin/consultation/") and path.endswith("/status"):

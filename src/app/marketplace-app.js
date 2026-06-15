@@ -58,11 +58,14 @@ import {
   archiveAdminProduct,
   getAdminConsultations,
   getAdminKpis,
+  getAdminMembers,
   getAdminOrder,
   getAdminOrders,
   getAdminProducts,
   replyAdminConsultation,
   saveAdminProduct,
+  updateAdminMemberRole,
+  updateAdminMemberStatus,
   updateAdminOrderFulfillment,
   updateAdminConsultationStatus,
   uploadAdminProductImage,
@@ -127,10 +130,16 @@ function currentAdminOrderFilters() {
 function renderMarketplace(_session, catalog) {
   const { products = [], categories = [], filters = {} } = catalog || {};
   const featuredProduct = products.find((product) => product.featured) || products[0];
+  const catalogueSlides = products.length
+    ? [...products, ...products]
+        .map((product, index) => renderProductCard(product, { number: (index % products.length) + 1 }))
+        .join("")
+    : "";
   return `
-    <section class="mf-hero mf-section">
+    <div class="mf-marketplace-page">
+    <section class="mf-hero mf-section mf-marketplace-viewport">
       <div class="mf-container mf-hero__grid">
-        <div class="mf-stack mf-stack--lg">
+        <div class="mf-hero__content mf-stack mf-stack--lg">
           <p class="mf-eyebrow">Feira Mini Marketplace</p>
           <h1>Perangkat IT pilihan, dengan arahan yang lebih manusiawi.</h1>
           <p class="mf-lead">Katalog teknologi terkurasi untuk kebutuhan kerja, bisnis, jaringan, keamanan, dan solusi digital.</p>
@@ -139,47 +148,54 @@ function renderMarketplace(_session, catalog) {
             ${renderPrimaryButton({ label: "Konsultasi kebutuhan", href: "/member/consultation", variant: "secondary" })}
           </div>
           <p class="mf-demo-note">${products.length} produk aktif dari ${categories.length} kategori.</p>
+          ${featuredProduct ? `
+            <article class="mf-hero__featured">
+              <p class="mf-eyebrow">Featured solution</p>
+              <h2>${escapeHtml(featuredProduct.name)}</h2>
+              <p>${escapeHtml(featuredProduct.shortDescription)}</p>
+              ${renderPrimaryButton({ label: "Lihat featured", href: "/marketplace?featured=1#produk", variant: "secondary" })}
+            </article>
+          ` : ""}
         </div>
-        <div class="mf-hero__visual" aria-hidden="true">
-          <span class="mf-hero__orb"></span>
-          <div class="mf-hero__panel">
-            <span>Curated technology</span>
-            <strong>Built around your workflow.</strong>
+        <div class="mf-hero__signal" aria-label="Peta sinyal layanan IT">
+          <div class="mf-hero__signal-header">
+            <span>Live service map</span>
+            <strong>Feira OPS</strong>
+          </div>
+          <div class="mf-hero__signal-map" aria-hidden="true">
+            <span class="mf-hero__signal-node"></span>
+            <span class="mf-hero__signal-node"></span>
+            <span class="mf-hero__signal-node"></span>
+            <span class="mf-hero__signal-line"></span>
+            <span class="mf-hero__signal-line"></span>
+            <span class="mf-hero__signal-line"></span>
+          </div>
+          <div class="mf-hero__signal-footer">
+            <span>Procurement / Network / Security</span>
+            <strong>${products.length}</strong>
           </div>
         </div>
       </div>
     </section>
-    ${featuredProduct ? `
-      <section class="mf-market-banner">
-        <div class="mf-container mf-market-banner__inner">
-          <div>
-            <p class="mf-eyebrow">Featured solution</p>
-            <h2>${escapeHtml(featuredProduct.name)}</h2>
-            <p>${escapeHtml(featuredProduct.shortDescription)}</p>
-          </div>
-          ${renderPrimaryButton({ label: "Lihat pilihan featured", href: "/marketplace?featured=1#produk", variant: "secondary" })}
-        </div>
-      </section>
-    ` : ""}
-    <section class="mf-section" id="produk">
+    <section class="mf-section mf-catalog-section mf-marketplace-viewport" id="produk">
       <div class="mf-container">
         ${renderSectionHeader({
           eyebrow: "Katalog awal",
-          title: "Pilihan teknologi untuk fondasi kerja yang solid.",
+          title: "Catalogue product",
           description: "Cari berdasarkan kebutuhan, pilih kategori, dan urutkan katalog dengan cepat.",
         })}
         <form class="mf-catalog-tools mf-card" data-catalog-filter>
-          <label class="mf-field">Cari produk
-            <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Laptop, network, CCTV...">
+          <label class="mf-field">
+            <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Laptop, network, CCTV..." aria-label="Cari produk">
           </label>
-          <label class="mf-field">Kategori
-            <select name="category">
+          <label class="mf-field">
+            <select name="category" aria-label="Kategori">
               <option value="">Semua kategori</option>
               ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.productCount})</option>`).join("")}
             </select>
           </label>
-          <label class="mf-field">Urutkan
-            <select name="sort">
+          <label class="mf-field">
+            <select name="sort" aria-label="Urutkan">
               <option value="featured"${filters.sort === "featured" ? " selected" : ""}>Featured</option>
               <option value="newest"${filters.sort === "newest" ? " selected" : ""}>Terbaru</option>
               <option value="price_asc"${filters.sort === "price_asc" ? " selected" : ""}>Harga terendah</option>
@@ -194,13 +210,36 @@ function renderMarketplace(_session, catalog) {
           <button class="mf-button mf-button--primary" type="submit">Terapkan filter</button>
           <a class="mf-button mf-button--secondary" href="/marketplace#produk">Reset</a>
         </form>
-        <p class="mf-catalog-count">${products.length} produk ditemukan.</p>
-        ${products.length ? `<div class="mf-grid mf-grid--products">${products.map(renderProductCard).join("")}</div>` : `
+        ${products.length ? `
+          <div class="mf-catalog-marquee" aria-label="Catalogue produk berjalan otomatis">
+            <div class="mf-catalog-track">
+              ${catalogueSlides}
+            </div>
+          </div>
+        ` : `
           <div class="mf-empty-state mf-card">
             <h3>Produk belum ditemukan.</h3>
             <p>Coba kata kunci atau kategori lain.</p>
           </div>
         `}
+      </div>
+    </section>
+    </div>
+  `;
+}
+
+function renderMarketplaceSkeleton() {
+  return `
+    <section class="mf-section">
+      <div class="mf-container mf-skeleton-shell" aria-busy="true" aria-live="polite">
+        <div class="mf-skeleton mf-skeleton--eyebrow"></div>
+        <div class="mf-skeleton mf-skeleton--title"></div>
+        <div class="mf-skeleton mf-skeleton--text"></div>
+        <div class="mf-skeleton-grid">
+          <div class="mf-skeleton mf-skeleton--card"></div>
+          <div class="mf-skeleton mf-skeleton--card"></div>
+          <div class="mf-skeleton mf-skeleton--card"></div>
+        </div>
       </div>
     </section>
   `;
@@ -716,13 +755,74 @@ function renderAdminDashboard(session, data = {}) {
           <aside class="mf-card mf-admin-panel">
             <p class="mf-eyebrow">Phase 8 scope</p>
             <h2>Operational control center.</h2>
-            <p>KPI, consultation management, order monitoring, dan product management sudah aktif. News dan member management menjadi tahap lanjutan Phase 8.</p>
+            <p>KPI, consultation management, order monitoring, product management, news management, dan member management sudah aktif sebagai fondasi operasional Phase 8.</p>
             <div class="mf-action-row">
               <a class="mf-button mf-button--primary" href="/admin/orders">Monitor order</a>
               <a class="mf-button mf-button--secondary" href="/admin/products">Kelola produk</a>
               <a class="mf-button mf-button--secondary" href="/admin/consultation">Kelola konsultasi</a>
+              <a class="mf-button mf-button--secondary" href="/admin/members">Kelola member</a>
             </div>
           </aside>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderAdminMembers(session, data = {}) {
+  const members = data.members || [];
+  const statuses = ["active", "inactive", "suspended"];
+  const roles = ["member", "admin", "super_admin"];
+  const canManageRole = session?.user?.role === "super_admin";
+  const pendingCount = members.filter((member) => member.status === "inactive").length;
+  return `
+    <section class="mf-section">
+      <div class="mf-container">
+        ${renderSectionHeader({
+          eyebrow: "Admin members",
+          title: "Approval, status akun, dan role dalam satu meja kerja.",
+          description: `${members.length} akun terdaftar. ${pendingCount} akun menunggu aktivasi atau review owner/admin.`,
+        })}
+        <div class="mf-admin-member-list">
+          ${members.length ? members.map((member) => {
+            const isCurrentUser = member.id === session?.user?.id;
+            return `
+              <article class="mf-card mf-admin-member-card" id="member-${escapeHtml(member.id)}">
+                <header>
+                  <div>
+                    <div class="mf-action-row">
+                      <span class="mf-badge">${escapeHtml(member.status)}</span>
+                      <span class="mf-badge mf-badge--blue">${escapeHtml(member.role)}</span>
+                      ${isCurrentUser ? '<span class="mf-badge">akun aktif</span>' : ""}
+                    </div>
+                    <h2>${escapeHtml(member.name)}</h2>
+                    <a href="mailto:${escapeHtml(member.email)}">${escapeHtml(member.email)}</a>
+                  </div>
+                  <small>Daftar ${formatTimestamp(member.createdAt)}</small>
+                </header>
+                <div class="mf-admin-member-card__forms">
+                  <form class="mf-form" data-admin-member-status="${escapeHtml(member.id)}">
+                    <label class="mf-field">Status akun
+                      <select name="status"${member.role === "super_admin" && member.status === "active" ? " disabled" : ""}>
+                        ${statuses.map((status) => `<option value="${status}"${member.status === status ? " selected" : ""}>${status}</option>`).join("")}
+                      </select>
+                    </label>
+                    <button class="mf-button mf-button--secondary" type="submit"${member.role === "super_admin" && member.status === "active" ? " disabled" : ""}>Update status</button>
+                    <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+                  </form>
+                  <form class="mf-form" data-admin-member-role="${escapeHtml(member.id)}">
+                    <label class="mf-field">Role
+                      <select name="role"${canManageRole ? "" : " disabled"}>
+                        ${roles.map((role) => `<option value="${role}"${member.role === role ? " selected" : ""}>${role}</option>`).join("")}
+                      </select>
+                    </label>
+                    <button class="mf-button mf-button--secondary" type="submit"${canManageRole ? "" : " disabled"}>Update role</button>
+                    <p class="mf-form-status" data-form-status role="status" aria-live="polite">${canManageRole ? "" : "Role hanya dapat diubah oleh super admin."}</p>
+                  </form>
+                </div>
+              </article>
+            `;
+          }).join("") : '<div class="mf-empty-state mf-card"><h3>Belum ada member.</h3><p>Akun baru akan muncul setelah registrasi.</p></div>'}
         </div>
       </div>
     </section>
@@ -1133,6 +1233,7 @@ const pages = {
   "admin-consultation": renderAdminConsultation,
   "admin-orders": renderAdminOrders,
   "admin-products": renderAdminProducts,
+  "admin-members": renderAdminMembers,
   checkout: renderCheckout,
   "not-found": () =>
     renderEmptyState("404", "Halaman belum tersedia.", "Route ini belum menjadi bagian dari foundation Feira.", "/marketplace", "Ke marketplace"),
@@ -1149,6 +1250,7 @@ function safeNextPath() {
     "/admin/consultation",
     "/admin/orders",
     "/admin/products",
+    "/admin/members",
     "/checkout",
   ]);
   if (allowed.has(next) || next?.startsWith("/marketplace/product/")) return next;
@@ -1678,6 +1780,53 @@ function bindAdminProducts(session) {
   });
 }
 
+function bindAdminMembers(session) {
+  if (!session) return;
+  document.querySelectorAll("[data-admin-member-status]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      const status = form.querySelector("[data-form-status]");
+      const value = new FormData(form).get("status");
+      button.disabled = true;
+      status.textContent = "Memperbarui status member...";
+      status.dataset.state = "pending";
+      try {
+        await updateAdminMemberStatus(form.dataset.adminMemberStatus, value, session.csrfToken);
+        status.textContent = "Status member berhasil diperbarui.";
+        status.dataset.state = "success";
+        window.setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.state = "error";
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-member-role]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      const status = form.querySelector("[data-form-status]");
+      const value = new FormData(form).get("role");
+      button.disabled = true;
+      status.textContent = "Memperbarui role member...";
+      status.dataset.state = "pending";
+      try {
+        await updateAdminMemberRole(form.dataset.adminMemberRole, value, session.csrfToken);
+        status.textContent = "Role member berhasil diperbarui.";
+        status.dataset.state = "success";
+        window.setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.state = "error";
+        button.disabled = false;
+      }
+    });
+  });
+}
+
 function bindProductGallery() {
   const gallery = document.querySelector("[data-product-gallery]");
   if (!gallery) return;
@@ -1890,6 +2039,7 @@ function bindPaymentForms(session) {
 async function bootstrap() {
   const route = getRoute();
   const root = document.querySelector("[data-marketplace-root]");
+  root.innerHTML = renderMarketplaceSkeleton();
   let session = null;
   let profile = null;
   let notifications = null;
@@ -2004,6 +2154,8 @@ async function bootstrap() {
         getCategories(),
       ]);
       pageData = { products, categories };
+    } else if (route === "admin-members") {
+      pageData = { members: await getAdminMembers() };
     }
   } catch (error) {
     if ((route === "product" || route === "article") && error.status === 404) {
@@ -2047,6 +2199,7 @@ async function bootstrap() {
   bindAdminConsultation(session);
   bindAdminOrders(session);
   bindAdminProducts(session);
+  bindAdminMembers(session);
   bindProductGallery();
   bindAddCart(session);
   bindCartEditor(session);

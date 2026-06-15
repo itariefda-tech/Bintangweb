@@ -10,7 +10,10 @@ const escapeHtml = (value = "") =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-export function renderProductCard(product) {
+export function renderProductCard(product, options = {}) {
+  const cardNumber = typeof options === "object" && options.number
+    ? String(options.number).padStart(2, "0")
+    : "";
   const stockLabels = {
     in_stock: "Tersedia",
     low_stock: `Stok terbatas: ${product.stock}`,
@@ -18,6 +21,7 @@ export function renderProductCard(product) {
   };
   return `
     <article class="mf-product-card mf-card">
+      ${cardNumber ? `<span class="mf-product-card__number">${escapeHtml(cardNumber)}</span>` : ""}
       <a class="mf-product-card__media" href="/marketplace/product/${escapeHtml(product.slug)}" tabindex="-1" aria-hidden="true">
         <img src="${escapeHtml(product.image)}" alt="" loading="lazy" width="640" height="420">
       </a>
@@ -31,9 +35,11 @@ export function renderProductCard(product) {
           <h3>${escapeHtml(product.name)}</h3>
           <p>${escapeHtml(product.shortDescription)}</p>
         </div>
-        <span class="mf-stock mf-stock--${escapeHtml(product.stockStatus)}">${escapeHtml(stockLabels[product.stockStatus] || "Cek stok")}</span>
         ${renderPriceTag(product.price)}
-        ${renderPrimaryButton({ label: "Lihat detail", href: `/marketplace/product/${escapeHtml(product.slug)}` })}
+        <div class="mf-product-card__actions">
+          <span class="mf-stock mf-stock--${escapeHtml(product.stockStatus)}">${escapeHtml(stockLabels[product.stockStatus] || "Cek stok")}</span>
+          ${renderPrimaryButton({ label: "Detail", href: `/marketplace/product/${escapeHtml(product.slug)}` })}
+        </div>
       </div>
     </article>
   `;
