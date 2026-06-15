@@ -17,6 +17,7 @@ const clientList = document.querySelector("[data-client-list]");
 let settings;
 let catalog = { products: [], categories: [] };
 let members = [];
+let news = { articles: [], categories: [] };
 let toastTimer;
 
 function showToast(message) {
@@ -245,6 +246,105 @@ async function loadMembers() {
   renderMembers();
 }
 
+function resetNewsCategoryForm() {
+  const form = document.querySelector("[data-news-category-form]");
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.status.value = "active";
+  form.querySelector('button[type="submit"]').textContent = "Simpan kategori";
+}
+
+function resetNewsArticleForm() {
+  const form = document.querySelector("[data-news-article-form]");
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.status.value = "draft";
+  form.elements.readingTime.value = "3 min read";
+  form.elements.trendingScore.value = "0";
+  form.querySelector('button[type="submit"]').textContent = "Simpan artikel";
+}
+
+function populateNewsCategoryForm(category) {
+  const form = document.querySelector("[data-news-category-form]");
+  form.elements.id.value = category.id;
+  form.elements.name.value = category.name;
+  form.elements.slug.value = category.slug;
+  form.elements.status.value = category.status;
+  form.elements.description.value = category.description || "";
+  form.querySelector('button[type="submit"]').textContent = "Perbarui kategori";
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function populateNewsArticleForm(article) {
+  const form = document.querySelector("[data-news-article-form]");
+  form.elements.id.value = article.id;
+  form.elements.title.value = article.title;
+  form.elements.slug.value = article.slug;
+  form.elements.category.value = article.category.slug;
+  form.elements.readingTime.value = article.readingTime;
+  form.elements.status.value = article.status;
+  form.elements.trendingScore.value = article.trendingScore;
+  form.elements.featured.checked = article.featured;
+  form.elements.excerpt.value = article.excerpt;
+  form.elements.body.value = article.body;
+  form.elements.image.value = article.image;
+  form.querySelector('button[type="submit"]').textContent = "Perbarui artikel";
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderNewsCategories() {
+  const list = document.querySelector("[data-news-category-list]");
+  list.innerHTML = news.categories.length ? news.categories.map((category) => `
+    <article class="owner-record">
+      <div class="owner-record-heading">
+        <div>
+          <strong>${escapeHtml(category.name)}</strong>
+          <small>${escapeHtml(category.slug)} · ${category.articleCount} artikel</small>
+        </div>
+        <span class="owner-record-status" data-status="${category.status}">${category.status}</span>
+      </div>
+      <p class="owner-record-meta">${escapeHtml(category.description || "")}</p>
+      <div class="owner-record-actions">
+        <button class="owner-button owner-button-quiet" type="button" data-news-category-edit="${category.id}">Edit</button>
+      </div>
+    </article>
+  `).join("") : '<p class="owner-note">Belum ada kategori news.</p>';
+}
+
+function renderNewsArticles() {
+  const list = document.querySelector("[data-news-article-list]");
+  list.innerHTML = news.articles.length ? news.articles.map((article) => `
+    <article class="owner-record owner-news-record">
+      <img src="${escapeHtml(article.image)}" alt="" loading="lazy">
+      <div>
+        <div class="owner-record-heading">
+          <div>
+            <strong>${escapeHtml(article.title)}</strong>
+            <small>${escapeHtml(article.category.name)} · ${escapeHtml(article.readingTime)} · trending ${article.trendingScore}</small>
+          </div>
+          <span class="owner-record-status" data-status="${article.status}">${article.status}</span>
+        </div>
+        <p class="owner-record-meta">${escapeHtml(article.excerpt)}</p>
+        <div class="owner-record-actions">
+          <button class="owner-button owner-button-quiet" type="button" data-news-article-edit="${article.id}">Edit</button>
+          ${article.status === "archived" ? "" : `<button class="owner-button owner-button-quiet" type="button" data-news-article-archive="${article.id}">Arsipkan</button>`}
+          ${article.status === "published" ? `<a class="owner-button owner-button-quiet" href="/news/${encodeURIComponent(article.slug)}" target="_blank" rel="noreferrer">Lihat</a>` : ""}
+        </div>
+      </div>
+    </article>
+  `).join("") : '<p class="owner-note">Belum ada artikel news.</p>';
+}
+
+async function loadNews() {
+  news = await request("/api/owner/news");
+  const select = document.querySelector("[data-news-article-category]");
+  select.innerHTML = news.categories.map((category) =>
+    `<option value="${category.slug}">${escapeHtml(category.name)}${category.status === "inactive" ? " (inactive)" : ""}</option>`
+  ).join("");
+  renderNewsCategories();
+  renderNewsArticles();
+}
+
 async function saveSettings() {
   collectForm();
   saveState.textContent = "Menyimpan perubahan...";
@@ -264,7 +364,7 @@ async function boot() {
   }
   settings = await request("/api/public-settings");
   populateForm();
-  await Promise.all([loadCatalog(), loadMembers()]);
+  await Promise.all([loadCatalog(), loadMembers(), loadNews()]);
 }
 
 document.querySelectorAll("[data-theme]").forEach((button) => {
@@ -390,6 +490,98 @@ document.querySelector("[data-member-list]").addEventListener("click", async (ev
     showToast(button.dataset.status === "active" ? "Member berhasil disetujui." : "Status member diperbarui.");
   } catch (error) {
     button.disabled = false;
+    showToast(error.message);
+  }
+});
+
+document.querySelector("[data-news-category-reset]").addEventListener("click", resetNewsCategoryForm);
+document.querySelector("[data-news-article-reset]").addEventListener("click", resetNewsArticleForm);
+
+document.querySelector("[data-news-image-upload]").addEventListener("click", async () => {
+  const form = document.querySelector("[data-news-article-form]");
+  const file = document.querySelector("[data-news-image-file]").files[0];
+  try {
+    form.elements.image.value = await uploadFile(file, "news");
+    showToast("Cover artikel berhasil diupload.");
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+document.querySelector("[data-news-category-form]").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const values = Object.fromEntries(new FormData(form));
+  const categoryId = values.id;
+  delete values.id;
+  try {
+    await request(
+      categoryId ? `/api/owner/news/categories/${categoryId}` : "/api/owner/news/categories",
+      {
+        method: categoryId ? "PUT" : "POST",
+        body: JSON.stringify(values),
+      },
+    );
+    await loadNews();
+    resetNewsCategoryForm();
+    showToast(categoryId ? "Kategori news diperbarui." : "Kategori news ditambahkan.");
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+document.querySelector("[data-news-article-form]").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const values = Object.fromEntries(new FormData(form));
+  const articleId = values.id;
+  const payload = {
+    ...values,
+    featured: form.elements.featured.checked,
+    trendingScore: Number(values.trendingScore),
+  };
+  delete payload.id;
+  try {
+    await request(
+      articleId ? `/api/owner/news/articles/${articleId}` : "/api/owner/news/articles",
+      {
+        method: articleId ? "PUT" : "POST",
+        body: JSON.stringify(payload),
+      },
+    );
+    await loadNews();
+    resetNewsArticleForm();
+    showToast(articleId ? "Artikel berhasil diperbarui." : "Artikel berhasil ditambahkan.");
+  } catch (error) {
+    showToast(error.message);
+  }
+});
+
+document.querySelector("[data-news-category-list]").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-news-category-edit]");
+  if (!button) return;
+  const category = news.categories.find((item) => item.id === button.dataset.newsCategoryEdit);
+  if (category) populateNewsCategoryForm(category);
+});
+
+document.querySelector("[data-news-article-list]").addEventListener("click", async (event) => {
+  const edit = event.target.closest("[data-news-article-edit]");
+  const archive = event.target.closest("[data-news-article-archive]");
+  if (edit) {
+    const article = news.articles.find((item) => item.id === edit.dataset.newsArticleEdit);
+    if (article) populateNewsArticleForm(article);
+    return;
+  }
+  if (!archive) return;
+  const article = news.articles.find((item) => item.id === archive.dataset.newsArticleArchive);
+  if (!article || !window.confirm(`Arsipkan artikel "${article.title}"?`)) return;
+  try {
+    await request(`/api/owner/news/articles/${article.id}`, { method: "DELETE" });
+    await loadNews();
+    showToast("Artikel dipindahkan ke arsip.");
+  } catch (error) {
     showToast(error.message);
   }
 });

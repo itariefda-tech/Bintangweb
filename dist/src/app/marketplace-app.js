@@ -24,8 +24,6 @@ import {
 } from "../services/auth-service.js";
 import {
   mockDashboardItems,
-  mockConsultations,
-  mockNews,
 } from "../modules/marketplace/data/mock-marketplace.js";
 import {
   getCategories,
@@ -46,6 +44,31 @@ import {
   createPayment,
   getOrderPayments,
 } from "../services/payment-service.js";
+import {
+  createConsultationTicket,
+  getConsultationTickets,
+  replyConsultationTicket,
+} from "../services/consultation-service.js";
+import {
+  getNewsArticle,
+  getNewsArticles,
+  getNewsCategories,
+} from "../services/news-service.js";
+import {
+  archiveAdminProduct,
+  getAdminConsultations,
+  getAdminKpis,
+  getAdminOrder,
+  getAdminOrders,
+  getAdminProducts,
+  replyAdminConsultation,
+  saveAdminProduct,
+  updateAdminOrderFulfillment,
+  updateAdminConsultationStatus,
+  uploadAdminProductImage,
+} from "../services/admin-service.js";
+
+let adminProductCache = [];
 
 const escapeHtml = (value = "") =>
   String(value)
@@ -65,6 +88,7 @@ const formatIdr = (value) =>
 function getRoute() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
   if (path.startsWith("/marketplace/product/")) return "product";
+  if (path.startsWith("/news/")) return "article";
   return marketplaceConfig.routes[path] || "not-found";
 }
 
@@ -75,6 +99,28 @@ function currentCatalogFilters() {
     category: query.get("category") || "",
     featured: query.get("featured") === "1",
     sort: query.get("sort") || "featured",
+  };
+}
+
+function currentNewsFilters() {
+  const query = new URLSearchParams(window.location.search);
+  return {
+    search: query.get("search") || "",
+    category: query.get("category") || "",
+    featured: query.get("featured") === "1",
+    trending: query.get("trending") === "1",
+  };
+}
+
+function currentAdminConsultationStatus() {
+  return new URLSearchParams(window.location.search).get("status") || "";
+}
+
+function currentAdminOrderFilters() {
+  const query = new URLSearchParams(window.location.search);
+  return {
+    paymentStatus: query.get("paymentStatus") || "",
+    orderStatus: query.get("orderStatus") || "",
   };
 }
 
@@ -437,34 +483,535 @@ function renderOrders(_session, orders) {
   `;
 }
 
-function renderConsultation() {
+function formatTimestamp(value) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(Number(value) * 1000));
+}
+
+function renderConsultation(_session, tickets = []) {
   return `
     <section class="mf-section">
       <div class="mf-container">
         ${renderSectionHeader({
           eyebrow: "IT consultation",
           title: "Percakapan teknis yang tetap terstruktur.",
-          description: "Ticket card berikut adalah mock UI. Submit, upload, reply, dan permission belum aktif.",
+          description: `${tickets.length} ticket konsultasi tersimpan. Buat ticket baru, pantau status, dan balas follow-up dari tim Feira.`,
         })}
-        <div class="mf-grid mf-grid--tickets">
-          ${mockConsultations.map(renderConsultationTicketCard).join("")}
+        <div class="mf-consultation-layout">
+          <section class="mf-card mf-consultation-form-card">
+            <h2>Buat ticket konsultasi</h2>
+            <form class="mf-form" data-consultation-form novalidate>
+              <div class="mf-form-grid">
+                <label class="mf-field mf-field--wide">Subject
+                  <input name="subject" minlength="5" maxlength="160" required placeholder="Contoh: Audit jaringan kantor cabang">
+                  <small data-field-error="subject"></small>
+                </label>
+                <label class="mf-field">Kategori
+                  <select name="category">
+                    <option value="Network">Network</option>
+                    <option value="CCTV">CCTV</option>
+                    <option value="Website">Website</option>
+                    <option value="Custom Application">Custom Application</option>
+                    <option value="Procurement">Procurement</option>
+                  </select>
+                  <small data-field-error="category"></small>
+                </label>
+                <label class="mf-field">Prioritas
+                  <select name="priority">
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="low">Low</option>
+                  </select>
+                  <small data-field-error="priority"></small>
+                </label>
+                <label class="mf-field mf-field--wide">Kebutuhan
+                  <textarea name="message" minlength="12" maxlength="4000" rows="5" required placeholder="Ceritakan kondisi saat ini, target, lokasi, dan kendala utama."></textarea>
+                  <small data-field-error="message"></small>
+                </label>
+                <label class="mf-field mf-field--wide">Attachment pendukung
+                  <input type="file" name="attachmentFile" accept="image/jpeg,image/png,application/pdf">
+                  <small data-field-error="attachment">Opsional. JPG, PNG, atau PDF maksimal 5MB.</small>
+                </label>
+              </div>
+              <button class="mf-button mf-button--primary" type="submit">Kirim ticket</button>
+              <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+            </form>
+          </section>
+          <section class="mf-consultation-list">
+            ${tickets.length ? tickets.map((ticket) => `
+              <article class="mf-ticket-detail mf-card">
+                ${renderConsultationTicketCard({
+                  ...ticket,
+                  updatedAt: formatTimestamp(ticket.updatedAt),
+                })}
+                <div class="mf-ticket-thread">
+                  ${(ticket.replies || []).map((reply) => `
+                    <div class="mf-ticket-reply" data-role="${escapeHtml(reply.authorRole)}">
+                      <strong>${escapeHtml(reply.authorRole)}</strong>
+                      <p>${escapeHtml(reply.message)}</p>
+                      <small>${formatTimestamp(reply.createdAt)}</small>
+                    </div>
+                  `).join("")}
+                </div>
+                ${(ticket.attachments || []).length ? `
+                  <div class="mf-ticket-attachments">
+                    ${(ticket.attachments || []).map((attachment) => `
+                      <a href="${escapeHtml(attachment.downloadUrl)}">${escapeHtml(attachment.filename)}</a>
+                    `).join("")}
+                  </div>
+                ` : ""}
+                ${ticket.status === "closed" ? "" : `
+                  <form class="mf-ticket-reply-form" data-consultation-reply="${escapeHtml(ticket.id)}">
+                    <label class="mf-field">Reply
+                      <textarea name="message" minlength="2" maxlength="3000" rows="3" required placeholder="Tambahkan informasi atau jawab pertanyaan tim."></textarea>
+                    </label>
+                    <button class="mf-button mf-button--secondary" type="submit">Kirim reply</button>
+                    <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+                  </form>
+                `}
+              </article>
+            `).join("") : `
+              <div class="mf-empty-state mf-card">
+                <h3>Belum ada ticket konsultasi.</h3>
+                <p>Mulai dari kebutuhan yang paling terasa hari ini. Tim akan menata konteksnya bersama Anda.</p>
+              </div>
+            `}
+          </section>
         </div>
       </div>
     </section>
   `;
 }
 
-function renderNews() {
+function renderNews(_session, newsData = {}) {
+  const { articles = [], categories = [], filters = {} } = newsData || {};
+  const featured = articles.find((article) => article.featured) || articles[0];
   return `
     <section class="mf-section">
       <div class="mf-container">
         ${renderSectionHeader({
           eyebrow: "Feira IT News",
           title: "Insight ringkas untuk keputusan teknologi yang lebih jernih.",
-          description: "Artikel berikut adalah mock content Phase 1, bukan publikasi final.",
+          description: `${articles.length} artikel tersedia dari ${categories.length} kategori.`,
         })}
-        <div class="mf-grid mf-grid--news">
-          ${mockNews.map(renderNewsCard).join("")}
+        ${featured ? `
+          <article class="mf-news-featured mf-card">
+            <img src="${escapeHtml(featured.image)}" alt="" loading="lazy" width="960" height="540">
+            <div>
+              <span class="mf-badge mf-badge--blue">${escapeHtml(featured.category.name)}</span>
+              <h2>${escapeHtml(featured.title)}</h2>
+              <p>${escapeHtml(featured.excerpt)}</p>
+              <a class="mf-button mf-button--primary" href="/news/${encodeURIComponent(featured.slug)}">Baca featured</a>
+            </div>
+          </article>
+        ` : ""}
+        <form class="mf-catalog-tools mf-card" data-news-filter>
+          <label class="mf-field">Cari artikel
+            <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website...">
+          </label>
+          <label class="mf-field">Kategori
+            <select name="category">
+              <option value="">Semua kategori</option>
+              ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.articleCount})</option>`).join("")}
+            </select>
+          </label>
+          <label class="mf-featured-toggle">
+            <input type="checkbox" name="featured" value="1"${filters.featured ? " checked" : ""}>
+            Featured
+          </label>
+          <label class="mf-featured-toggle">
+            <input type="checkbox" name="trending" value="1"${filters.trending ? " checked" : ""}>
+            Trending
+          </label>
+          <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
+          <a class="mf-button mf-button--secondary" href="/news">Reset</a>
+        </form>
+        ${articles.length ? `<div class="mf-grid mf-grid--news">${articles.map(renderNewsCard).join("")}</div>` : `
+          <div class="mf-empty-state mf-card"><h3>Artikel belum ditemukan.</h3><p>Coba kata kunci atau kategori lain.</p></div>
+        `}
+      </div>
+    </section>
+  `;
+}
+
+function renderArticle(_session, article) {
+  if (!article) {
+    return renderEmptyState("404", "Artikel tidak ditemukan.", "Artikel mungkin belum dipublikasikan.", "/news", "Kembali ke News");
+  }
+  return `
+    <article class="mf-section">
+      <div class="mf-container mf-article-layout">
+        <header class="mf-article-header">
+          <p class="mf-eyebrow">${escapeHtml(article.category.name)} / ${escapeHtml(article.readingTime)}</p>
+          <h1>${escapeHtml(article.title)}</h1>
+          <p class="mf-lead">${escapeHtml(article.excerpt)}</p>
+        </header>
+        <img class="mf-article-image" src="${escapeHtml(article.image)}" alt="" loading="lazy" width="1120" height="630">
+        <div class="mf-article-body mf-card">
+          <p>${escapeHtml(article.body)}</p>
+        </div>
+        ${(article.related || []).length ? `
+          <section>
+            ${renderSectionHeader({
+              eyebrow: "Related article",
+              title: "Baca juga dari kategori yang sama.",
+              description: "Insight terkait untuk memperluas konteks keputusan IT.",
+            })}
+            <div class="mf-grid mf-grid--news">${article.related.map(renderNewsCard).join("")}</div>
+          </section>
+        ` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function renderAdminDashboard(session, data = {}) {
+  const kpis = data.kpis || {};
+  const recentTickets = data.tickets || [];
+  const cards = [
+    ["Akun aktif", kpis.activeMembers || 0, `${kpis.totalMembers || 0} total akun`],
+    ["Total order", kpis.totalOrders || 0, `${kpis.pendingPayments || 0} menunggu pembayaran`],
+    ["Omzet paid", formatIdr(kpis.paidRevenue), "Akumulasi order berstatus paid"],
+    ["Ticket aktif", kpis.activeTickets || 0, `${kpis.urgentTickets || 0} prioritas urgent`],
+  ];
+  return `
+    <section class="mf-section">
+      <div class="mf-container">
+        ${renderSectionHeader({
+          eyebrow: "Admin ecosystem",
+          title: `Operational overview, ${escapeHtml(session.user.name)}.`,
+          description: "Ringkasan data marketplace dan konsultasi yang dihitung langsung dari persistence aktif.",
+        })}
+        <div class="mf-admin-kpi-grid">
+          ${cards.map(([label, value, note]) => `
+            <article class="mf-admin-kpi mf-card">
+              <span>${escapeHtml(label)}</span>
+              <strong>${escapeHtml(value)}</strong>
+              <small>${escapeHtml(note)}</small>
+            </article>
+          `).join("")}
+        </div>
+        <div class="mf-admin-dashboard-grid">
+          <section class="mf-card mf-admin-panel">
+            <div class="mf-admin-panel__heading">
+              <div><p class="mf-eyebrow">Consultation queue</p><h2>Ticket terbaru</h2></div>
+              <a class="mf-text-link" href="/admin/consultation">Buka semua</a>
+            </div>
+            ${recentTickets.length ? `
+              <div class="mf-admin-ticket-summary">
+                ${recentTickets.slice(0, 5).map((ticket) => `
+                  <a href="/admin/consultation#ticket-${escapeHtml(ticket.id)}">
+                    <span class="mf-badge">${escapeHtml(ticket.priority)}</span>
+                    <div><strong>${escapeHtml(ticket.subject)}</strong><small>${escapeHtml(ticket.member?.name || "-")} / ${escapeHtml(ticket.status)}</small></div>
+                    <time>${formatTimestamp(ticket.updatedAt)}</time>
+                  </a>
+                `).join("")}
+              </div>
+            ` : '<div class="mf-empty-state"><p>Queue konsultasi masih kosong.</p></div>'}
+          </section>
+          <aside class="mf-card mf-admin-panel">
+            <p class="mf-eyebrow">Phase 8 scope</p>
+            <h2>Operational control center.</h2>
+            <p>KPI, consultation management, order monitoring, dan product management sudah aktif. News dan member management menjadi tahap lanjutan Phase 8.</p>
+            <div class="mf-action-row">
+              <a class="mf-button mf-button--primary" href="/admin/orders">Monitor order</a>
+              <a class="mf-button mf-button--secondary" href="/admin/products">Kelola produk</a>
+              <a class="mf-button mf-button--secondary" href="/admin/consultation">Kelola konsultasi</a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderAdminProducts(_session, data = {}) {
+  const products = data.products || [];
+  const categories = data.categories || [];
+  adminProductCache = products;
+  return `
+    <section class="mf-section">
+      <div class="mf-container">
+        ${renderSectionHeader({
+          eyebrow: "Admin products",
+          title: "Kelola katalog tanpa bergantung pada owner builder.",
+          description: `${products.length} produk tersimpan. Create, edit, media, stok, featured, dan archive tersedia untuk role admin.`,
+        })}
+        <div class="mf-admin-product-layout">
+          <section class="mf-card mf-admin-product-form-card">
+            <div class="mf-admin-panel__heading">
+              <div><p class="mf-eyebrow">Product editor</p><h2 data-product-form-title>Produk baru</h2></div>
+              <button class="mf-button mf-button--secondary" type="button" data-admin-product-reset>Reset</button>
+            </div>
+            <form class="mf-form" data-admin-product-form novalidate>
+              <input type="hidden" name="id">
+              <div class="mf-form-grid">
+                <label class="mf-field">Nama produk
+                  <input name="name" minlength="3" maxlength="160" required>
+                  <small data-field-error="name"></small>
+                </label>
+                <label class="mf-field">Slug
+                  <input name="slug" maxlength="160" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="otomatis-jika-kosong">
+                  <small data-field-error="slug"></small>
+                </label>
+                <label class="mf-field">Kategori
+                  <select name="category" required>
+                    ${categories.map((category) => `<option value="${escapeHtml(category.slug)}">${escapeHtml(category.name)}</option>`).join("")}
+                  </select>
+                  <small data-field-error="category"></small>
+                </label>
+                <label class="mf-field">Badge
+                  <input name="badge" maxlength="80">
+                  <small data-field-error="badge"></small>
+                </label>
+                <label class="mf-field">Harga
+                  <input type="number" name="price" min="0" step="1" required>
+                  <small data-field-error="price"></small>
+                </label>
+                <label class="mf-field">Stok
+                  <input type="number" name="stock" min="0" step="1" required>
+                  <small data-field-error="stock"></small>
+                </label>
+                <label class="mf-field">Status
+                  <select name="status">
+                    <option value="active">active</option>
+                    <option value="inactive">inactive</option>
+                    <option value="out_of_stock">out_of_stock</option>
+                    <option value="archived">archived</option>
+                  </select>
+                  <small data-field-error="status"></small>
+                </label>
+                <label class="mf-featured-toggle">
+                  <input type="checkbox" name="featured">
+                  Featured product
+                </label>
+                <label class="mf-field mf-field--wide">Ringkasan
+                  <textarea name="shortDescription" maxlength="280" rows="3" required></textarea>
+                  <small data-field-error="shortDescription"></small>
+                </label>
+                <label class="mf-field mf-field--wide">Deskripsi
+                  <textarea name="description" maxlength="5000" rows="6" required></textarea>
+                  <small data-field-error="description"></small>
+                </label>
+                <label class="mf-field mf-field--wide">Gambar utama
+                  <input name="thumbnail" maxlength="500" required placeholder="/owner-media/product-....webp">
+                  <small data-field-error="thumbnail"></small>
+                </label>
+                <label class="mf-field">Upload gambar
+                  <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp,image/gif">
+                  <small>JPG, PNG, WebP, atau GIF maksimal 10MB.</small>
+                </label>
+                <div class="mf-admin-product-upload">
+                  <button class="mf-button mf-button--secondary" type="button" data-admin-product-upload>Upload dan gunakan</button>
+                  <p class="mf-form-status" data-upload-status role="status" aria-live="polite"></p>
+                </div>
+                <label class="mf-field mf-field--wide">Gallery URL
+                  <textarea name="images" rows="5" placeholder="Satu URL per baris"></textarea>
+                  <small>Maksimal 10 gambar. Gambar utama otomatis masuk gallery.</small>
+                </label>
+              </div>
+              <button class="mf-button mf-button--primary" type="submit">Simpan produk</button>
+              <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+            </form>
+          </section>
+          <section class="mf-admin-product-list">
+            ${products.map((product) => `
+              <article class="mf-card mf-admin-product-card">
+                <img src="${escapeHtml(product.image)}" alt="" loading="lazy" width="320" height="200">
+                <div>
+                  <div class="mf-action-row">
+                    <span class="mf-badge">${escapeHtml(product.status)}</span>
+                    ${product.featured ? '<span class="mf-badge mf-badge--blue">featured</span>' : ""}
+                  </div>
+                  <h3>${escapeHtml(product.name)}</h3>
+                  <p>${escapeHtml(product.category.name)} / stok ${product.stock}</p>
+                  <strong>${formatIdr(product.price)}</strong>
+                  <div class="mf-action-row">
+                    <button class="mf-button mf-button--secondary" type="button" data-admin-product-edit="${escapeHtml(product.id)}">Edit</button>
+                    ${product.status === "archived" ? "" : `<button class="mf-button mf-button--secondary" type="button" data-admin-product-archive="${escapeHtml(product.id)}">Arsipkan</button>`}
+                    ${product.status === "active" || product.status === "out_of_stock" ? `<a class="mf-text-link" href="/marketplace/product/${encodeURIComponent(product.slug)}" target="_blank" rel="noreferrer">Preview</a>` : ""}
+                  </div>
+                </div>
+              </article>
+            `).join("")}
+          </section>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderAdminOrders(_session, data = {}) {
+  const orders = data.orders || [];
+  const filters = data.filters || {};
+  const paymentStatuses = ["unpaid", "pending", "paid", "failed", "expired", "cancelled"];
+  const orderStatuses = ["pending", "waiting_payment", "paid", "processing", "shipped", "completed", "cancelled"];
+  return `
+    <section class="mf-section">
+      <div class="mf-container">
+        ${renderSectionHeader({
+          eyebrow: "Admin orders",
+          title: "Invoice, pembayaran, dan fulfillment dalam satu monitor.",
+          description: `${orders.length} order ditampilkan berdasarkan filter aktif.`,
+        })}
+        <form class="mf-admin-filter mf-admin-order-filter mf-card" data-admin-order-filter>
+          <label class="mf-field">Payment status
+            <select name="paymentStatus">
+              <option value="">Semua payment</option>
+              ${paymentStatuses.map((status) => `<option value="${status}"${filters.paymentStatus === status ? " selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </label>
+          <label class="mf-field">Order status
+            <select name="orderStatus">
+              <option value="">Semua order</option>
+              ${orderStatuses.map((status) => `<option value="${status}"${filters.orderStatus === status ? " selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </label>
+          <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
+          <a class="mf-button mf-button--secondary" href="/admin/orders">Reset</a>
+        </form>
+        <div class="mf-admin-order-list">
+          ${orders.length ? orders.map((order) => `
+            <article class="mf-card mf-admin-order" id="order-${escapeHtml(order.id)}">
+              <header class="mf-admin-order__header">
+                <div>
+                  <div class="mf-action-row">
+                    <span class="mf-badge mf-badge--blue">payment: ${escapeHtml(order.paymentStatus)}</span>
+                    <span class="mf-badge">order: ${escapeHtml(order.orderStatus)}</span>
+                  </div>
+                  <h2>${escapeHtml(order.invoiceNumber)}</h2>
+                  <p>Dibuat ${formatTimestamp(order.createdAt)}</p>
+                </div>
+                <strong class="mf-admin-order__total">${formatIdr(order.grandTotal)}</strong>
+              </header>
+              <div class="mf-admin-order__grid">
+                <section>
+                  <p class="mf-eyebrow">Customer</p>
+                  <h3>${escapeHtml(order.customer.name)}</h3>
+                  <p>${escapeHtml(order.customer.email)}</p>
+                  <p>${escapeHtml(order.customer.recipientName)} / ${escapeHtml(order.customer.phone)}</p>
+                </section>
+                <section>
+                  <p class="mf-eyebrow">Shipping</p>
+                  <p>${escapeHtml(order.shipping.address)}</p>
+                  <p>${escapeHtml(order.shipping.city)}, ${escapeHtml(order.shipping.province)} ${escapeHtml(order.shipping.postalCode)}</p>
+                  <p>Metode: ${escapeHtml(order.shipping.method)}</p>
+                </section>
+              </div>
+              <div class="mf-admin-order-items">
+                ${(order.items || []).map((item) => `
+                  <div>
+                    <span><strong>${escapeHtml(item.name)}</strong><small>${item.qty} x ${formatIdr(item.price)}</small></span>
+                    <strong>${formatIdr(item.subtotal)}</strong>
+                  </div>
+                `).join("")}
+                <div><span>Subtotal</span><strong>${formatIdr(order.subtotal)}</strong></div>
+                <div><span>Shipping</span><strong>${formatIdr(order.shippingCost)}</strong></div>
+                <div class="mf-admin-order-items__grand"><span>Grand total</span><strong>${formatIdr(order.grandTotal)}</strong></div>
+              </div>
+              ${order.nextFulfillmentStatus ? `
+                <form class="mf-admin-fulfillment" data-admin-fulfillment="${escapeHtml(order.id)}">
+                  <input type="hidden" name="status" value="${escapeHtml(order.nextFulfillmentStatus)}">
+                  <div>
+                    <strong>Langkah fulfillment berikutnya</strong>
+                    <p>${escapeHtml(order.orderStatus)} → ${escapeHtml(order.nextFulfillmentStatus)}</p>
+                  </div>
+                  <button class="mf-button mf-button--primary" type="submit">Set ${escapeHtml(order.nextFulfillmentStatus)}</button>
+                  <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+                </form>
+              ` : `
+                <div class="mf-notice">
+                  ${order.paymentStatus !== "paid"
+                    ? "Fulfillment terkunci sampai pembayaran berstatus paid."
+                    : "Fulfillment order ini sudah selesai atau tidak memiliki transisi berikutnya."}
+                </div>
+              `}
+            </article>
+          `).join("") : '<div class="mf-empty-state mf-card"><h3>Order tidak ditemukan.</h3><p>Coba kombinasi filter lain.</p></div>'}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderAdminConsultation(_session, data = {}) {
+  const tickets = data.tickets || [];
+  const activeStatus = data.status || "";
+  const statuses = ["open", "in_review", "waiting_member", "resolved", "closed"];
+  return `
+    <section class="mf-section">
+      <div class="mf-container">
+        ${renderSectionHeader({
+          eyebrow: "Admin consultation",
+          title: "Queue konsultasi dalam satu ruang kerja.",
+          description: `${tickets.length} ticket ditampilkan${activeStatus ? ` untuk status ${activeStatus}` : ""}.`,
+        })}
+        <form class="mf-admin-filter mf-card" data-admin-consultation-filter>
+          <label class="mf-field">Filter status
+            <select name="status">
+              <option value="">Semua status</option>
+              ${statuses.map((status) => `<option value="${status}"${activeStatus === status ? " selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </label>
+          <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
+          <a class="mf-button mf-button--secondary" href="/admin/consultation">Reset</a>
+        </form>
+        <div class="mf-admin-queue">
+          ${tickets.length ? tickets.map((ticket) => `
+            <article class="mf-card mf-admin-ticket" id="ticket-${escapeHtml(ticket.id)}">
+              <header class="mf-admin-ticket__header">
+                <div>
+                  <div class="mf-action-row">
+                    <span class="mf-badge">${escapeHtml(ticket.priority)}</span>
+                    <span class="mf-badge mf-badge--blue">${escapeHtml(ticket.status)}</span>
+                  </div>
+                  <h2>${escapeHtml(ticket.subject)}</h2>
+                  <p>${escapeHtml(ticket.number)} / ${escapeHtml(ticket.category)}</p>
+                </div>
+                <div class="mf-admin-member">
+                  <strong>${escapeHtml(ticket.member?.name || "-")}</strong>
+                  <a href="mailto:${escapeHtml(ticket.member?.email || "")}">${escapeHtml(ticket.member?.email || "-")}</a>
+                  <small>Update ${formatTimestamp(ticket.updatedAt)}</small>
+                </div>
+              </header>
+              <div class="mf-ticket-thread">
+                ${(ticket.replies || []).map((reply) => `
+                  <div class="mf-ticket-reply" data-role="${escapeHtml(reply.authorRole)}">
+                    <strong>${escapeHtml(reply.authorRole)}</strong>
+                    <p>${escapeHtml(reply.message)}</p>
+                    <small>${formatTimestamp(reply.createdAt)}</small>
+                  </div>
+                `).join("")}
+              </div>
+              ${(ticket.attachments || []).length ? `
+                <div class="mf-ticket-attachments">
+                  ${(ticket.attachments || []).map((attachment) => `<a href="${escapeHtml(attachment.downloadUrl)}">${escapeHtml(attachment.filename)}</a>`).join("")}
+                </div>
+              ` : ""}
+              <div class="mf-admin-ticket__actions">
+                <form class="mf-form" data-admin-reply="${escapeHtml(ticket.id)}">
+                  <label class="mf-field">Balasan admin
+                    <textarea name="message" minlength="2" maxlength="3000" rows="3" required placeholder="Berikan update teknis atau pertanyaan lanjutan."></textarea>
+                  </label>
+                  <button class="mf-button mf-button--primary" type="submit">Kirim balasan</button>
+                  <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+                </form>
+                <form class="mf-form" data-admin-status="${escapeHtml(ticket.id)}">
+                  <label class="mf-field">Status ticket
+                    <select name="status">
+                      ${statuses.map((status) => `<option value="${status}"${ticket.status === status ? " selected" : ""}>${status}</option>`).join("")}
+                    </select>
+                  </label>
+                  <button class="mf-button mf-button--secondary" type="submit">Update status</button>
+                  <p class="mf-form-status" data-form-status role="status" aria-live="polite"></p>
+                </form>
+              </div>
+            </article>
+          `).join("") : '<div class="mf-empty-state mf-card"><h3>Queue kosong.</h3><p>Tidak ada ticket untuk filter ini.</p></div>'}
         </div>
       </div>
     </section>
@@ -581,6 +1128,11 @@ const pages = {
   orders: renderOrders,
   consultation: renderConsultation,
   news: renderNews,
+  article: renderArticle,
+  admin: renderAdminDashboard,
+  "admin-consultation": renderAdminConsultation,
+  "admin-orders": renderAdminOrders,
+  "admin-products": renderAdminProducts,
   checkout: renderCheckout,
   "not-found": () =>
     renderEmptyState("404", "Halaman belum tersedia.", "Route ini belum menjadi bagian dari foundation Feira.", "/marketplace", "Ke marketplace"),
@@ -593,6 +1145,10 @@ function safeNextPath() {
     "/member/profile",
     "/member/orders",
     "/member/consultation",
+    "/admin",
+    "/admin/consultation",
+    "/admin/orders",
+    "/admin/products",
     "/checkout",
   ]);
   if (allowed.has(next) || next?.startsWith("/marketplace/product/")) return next;
@@ -815,6 +1371,310 @@ function bindCatalogFilter() {
     if (values.get("featured")) query.set("featured", "1");
     const suffix = query.size ? `?${query}` : "";
     window.location.assign(`/marketplace${suffix}#produk`);
+  });
+}
+
+function bindNewsFilter() {
+  const form = document.querySelector("[data-news-filter]");
+  if (!form) return;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const values = new FormData(form);
+    const query = new URLSearchParams();
+    const search = String(values.get("search") || "").trim();
+    const category = String(values.get("category") || "").trim();
+    if (search) query.set("search", search);
+    if (category) query.set("category", category);
+    if (values.get("featured")) query.set("featured", "1");
+    if (values.get("trending")) query.set("trending", "1");
+    window.location.assign(`/news${query.size ? `?${query}` : ""}`);
+  });
+}
+
+function bindConsultationForms(session) {
+  if (!session) return;
+  const form = document.querySelector("[data-consultation-form]");
+  if (form) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearFormErrors(form);
+      const button = form.querySelector('button[type="submit"]');
+      const status = form.querySelector("[data-form-status]");
+      if (!form.reportValidity()) return;
+      button.disabled = true;
+      status.textContent = "Mengirim ticket konsultasi...";
+      status.dataset.state = "pending";
+      try {
+        const values = Object.fromEntries(new FormData(form));
+        const file = form.querySelector('input[name="attachmentFile"]')?.files?.[0];
+        delete values.attachmentFile;
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            throw Object.assign(new Error("Attachment maksimal 5MB."), {
+              errors: { attachment: "Attachment maksimal 5MB." },
+            });
+          }
+          values.attachment = {
+            filename: file.name,
+            data: await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.addEventListener("load", () => resolve(reader.result));
+              reader.addEventListener("error", () => reject(new Error("Attachment tidak dapat dibaca.")));
+              reader.readAsDataURL(file);
+            }),
+          };
+        }
+        await createConsultationTicket(values, session.csrfToken);
+        status.textContent = "Ticket berhasil dibuat.";
+        status.dataset.state = "success";
+        window.setTimeout(() => window.location.reload(), 600);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.state = "error";
+        Object.entries(error.errors || {}).forEach(([field, message]) => {
+          const target = form.querySelector(`[data-field-error="${field}"]`);
+          if (target) target.textContent = message;
+        });
+        button.disabled = false;
+      }
+    });
+  }
+
+  document.querySelectorAll("[data-consultation-reply]").forEach((replyForm) => {
+    replyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = replyForm.querySelector('button[type="submit"]');
+      const status = replyForm.querySelector("[data-form-status]");
+      if (!replyForm.reportValidity()) return;
+      button.disabled = true;
+      status.textContent = "Mengirim reply...";
+      status.dataset.state = "pending";
+      try {
+        await replyConsultationTicket(
+          replyForm.dataset.consultationReply,
+          new FormData(replyForm).get("message"),
+          session.csrfToken,
+        );
+        status.textContent = "Reply berhasil dikirim.";
+        status.dataset.state = "success";
+        window.setTimeout(() => window.location.reload(), 600);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.state = "error";
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+function bindAdminConsultation(session) {
+  const filter = document.querySelector("[data-admin-consultation-filter]");
+  filter?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const status = String(new FormData(filter).get("status") || "");
+    window.location.assign(`/admin/consultation${status ? `?status=${encodeURIComponent(status)}` : ""}`);
+  });
+
+  document.querySelectorAll("[data-admin-reply]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      const status = form.querySelector("[data-form-status]");
+      if (!form.reportValidity()) return;
+      button.disabled = true;
+      status.textContent = "Mengirim balasan...";
+      status.dataset.state = "pending";
+      try {
+        await replyAdminConsultation(
+          form.dataset.adminReply,
+          new FormData(form).get("message"),
+          session.csrfToken,
+        );
+        status.textContent = "Balasan admin terkirim.";
+        status.dataset.state = "success";
+        window.setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.state = "error";
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-admin-status]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      const status = form.querySelector("[data-form-status]");
+      button.disabled = true;
+      status.textContent = "Memperbarui status...";
+      status.dataset.state = "pending";
+      try {
+        await updateAdminConsultationStatus(
+          form.dataset.adminStatus,
+          new FormData(form).get("status"),
+          session.csrfToken,
+        );
+        status.textContent = "Status berhasil diperbarui.";
+        status.dataset.state = "success";
+        window.setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.state = "error";
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+function bindAdminOrders(session) {
+  const filter = document.querySelector("[data-admin-order-filter]");
+  filter?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const values = new FormData(filter);
+    const query = new URLSearchParams();
+    const paymentStatus = String(values.get("paymentStatus") || "");
+    const orderStatus = String(values.get("orderStatus") || "");
+    if (paymentStatus) query.set("paymentStatus", paymentStatus);
+    if (orderStatus) query.set("orderStatus", orderStatus);
+    window.location.assign(`/admin/orders${query.size ? `?${query}` : ""}`);
+  });
+
+  document.querySelectorAll("[data-admin-fulfillment]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      const status = form.querySelector("[data-form-status]");
+      button.disabled = true;
+      status.textContent = "Memperbarui fulfillment...";
+      status.dataset.state = "pending";
+      try {
+        await updateAdminOrderFulfillment(
+          form.dataset.adminFulfillment,
+          new FormData(form).get("status"),
+          session.csrfToken,
+        );
+        status.textContent = "Fulfillment berhasil diperbarui.";
+        status.dataset.state = "success";
+        window.setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        status.textContent = error.message;
+        status.dataset.state = "error";
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+function bindAdminProducts(session) {
+  const form = document.querySelector("[data-admin-product-form]");
+  if (!form) return;
+  const title = document.querySelector("[data-product-form-title]");
+  const reset = () => {
+    form.reset();
+    form.elements.id.value = "";
+    form.elements.status.value = "active";
+    title.textContent = "Produk baru";
+    clearFormErrors(form);
+    form.querySelector("[data-form-status]").textContent = "";
+  };
+  document.querySelector("[data-admin-product-reset]")?.addEventListener("click", reset);
+
+  document.querySelector("[data-admin-product-upload]")?.addEventListener("click", async () => {
+    const file = form.elements.imageFile.files?.[0];
+    const status = form.querySelector("[data-upload-status]");
+    if (!file) {
+      status.textContent = "Pilih gambar terlebih dahulu.";
+      status.dataset.state = "error";
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      status.textContent = "Ukuran gambar maksimal 10MB.";
+      status.dataset.state = "error";
+      return;
+    }
+    status.textContent = "Mengupload gambar...";
+    status.dataset.state = "pending";
+    try {
+      const url = await uploadAdminProductImage(file, session.csrfToken);
+      form.elements.thumbnail.value = url;
+      const gallery = form.elements.images.value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+      if (!gallery.includes(url)) gallery.unshift(url);
+      form.elements.images.value = gallery.join("\n");
+      status.textContent = "Gambar berhasil diupload.";
+      status.dataset.state = "success";
+    } catch (error) {
+      status.textContent = error.message;
+      status.dataset.state = "error";
+    }
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearFormErrors(form);
+    if (!form.reportValidity()) return;
+    const button = form.querySelector('button[type="submit"]');
+    const status = form.querySelector("[data-form-status]");
+    const values = Object.fromEntries(new FormData(form));
+    const productId = String(values.id || "");
+    delete values.id;
+    delete values.imageFile;
+    values.featured = form.elements.featured.checked;
+    values.images = String(values.images || "").split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+    button.disabled = true;
+    status.textContent = "Menyimpan produk...";
+    status.dataset.state = "pending";
+    try {
+      await saveAdminProduct(values, session.csrfToken, productId);
+      status.textContent = productId ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.";
+      status.dataset.state = "success";
+      window.setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+      status.textContent = error.message;
+      status.dataset.state = "error";
+      Object.entries(error.errors || {}).forEach(([field, message]) => {
+        const target = form.querySelector(`[data-field-error="${field}"]`);
+        if (target) target.textContent = message;
+      });
+      button.disabled = false;
+    }
+  });
+
+  document.querySelectorAll("[data-admin-product-edit]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const product = adminProductCache.find((item) => item.id === button.dataset.adminProductEdit);
+      if (!product) return;
+      form.elements.id.value = product.id;
+      form.elements.name.value = product.name;
+      form.elements.slug.value = product.slug;
+      form.elements.category.value = product.category.slug;
+      form.elements.badge.value = product.badge || "";
+      form.elements.price.value = product.price;
+      form.elements.stock.value = product.stock;
+      form.elements.status.value = product.status;
+      form.elements.featured.checked = product.featured;
+      form.elements.shortDescription.value = product.shortDescription;
+      form.elements.description.value = product.description;
+      form.elements.thumbnail.value = product.image;
+      form.elements.images.value = (product.images || []).join("\n");
+      title.textContent = `Edit ${product.name}`;
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  document.querySelectorAll("[data-admin-product-archive]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const product = adminProductCache.find((item) => item.id === button.dataset.adminProductArchive);
+      if (!product || !window.confirm(`Arsipkan ${product.name}?`)) return;
+      button.disabled = true;
+      try {
+        await archiveAdminProduct(product.id, session.csrfToken);
+        window.location.reload();
+      } catch (error) {
+        window.alert(error.message);
+        button.disabled = false;
+      }
+    });
   });
 }
 
@@ -1105,9 +1965,48 @@ async function bootstrap() {
           payments: await getOrderPayments(order.id),
         })),
       );
+    } else if (route === "consultation") {
+      pageData = await getConsultationTickets();
+    } else if (route === "news") {
+      const filters = currentNewsFilters();
+      const [articles, categories] = await Promise.all([
+        getNewsArticles(filters),
+        getNewsCategories(),
+      ]);
+      pageData = { articles, categories, filters };
+    } else if (route === "article") {
+      const slug = window.location.pathname.split("/").filter(Boolean).at(-1);
+      pageData = await getNewsArticle(slug);
+    } else if (route === "admin") {
+      const [kpis, tickets] = await Promise.all([
+        getAdminKpis(),
+        getAdminConsultations(),
+      ]);
+      pageData = { kpis, tickets };
+    } else if (route === "admin-consultation") {
+      const status = currentAdminConsultationStatus();
+      pageData = {
+        tickets: await getAdminConsultations(status),
+        status,
+      };
+    } else if (route === "admin-orders") {
+      const filters = currentAdminOrderFilters();
+      const summaries = await getAdminOrders(filters);
+      pageData = {
+        orders: await Promise.all(
+          summaries.map((order) => getAdminOrder(order.id)),
+        ),
+        filters,
+      };
+    } else if (route === "admin-products") {
+      const [products, categories] = await Promise.all([
+        getAdminProducts(),
+        getCategories(),
+      ]);
+      pageData = { products, categories };
     }
   } catch (error) {
-    if (route === "product" && error.status === 404) {
+    if ((route === "product" || route === "article") && error.status === 404) {
       pageData = null;
     } else {
       root.innerHTML = renderEmptyState(
@@ -1143,6 +2042,11 @@ async function bootstrap() {
   bindAvatarForm(session);
   bindNotifications(session);
   bindCatalogFilter();
+  bindNewsFilter();
+  bindConsultationForms(session);
+  bindAdminConsultation(session);
+  bindAdminOrders(session);
+  bindAdminProducts(session);
   bindProductGallery();
   bindAddCart(session);
   bindCartEditor(session);

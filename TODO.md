@@ -2,88 +2,69 @@
 ## Mini Marketplace Feira Development Tracker
 
 ### Active Phase
-PHASE 2 - AUTH & MEMBER SYSTEM (LIMITED FOUNDATION)
+PHASE 8 - ADMIN ECOSYSTEM
 
 ### Current Focus
-Membangun member profile persistence dan profile settings dengan migration versioning, API terproteksi, serta form mobile-first. Avatar upload dan notification center tetap di luar scope stage ini.
+Membangun control center Phase 8 secara bertahap. Dashboard, consultation, order, product, dan owner-credential News Management sudah aktif.
 
 ### Last Progress
-- Seluruh dokumen `docs/MARKET_FEIRA*.md` sudah dibaca.
-- Stack existing sudah dipetakan: static frontend, Node build script, dan Python `SimpleHTTPRequestHandler`.
-- Struktur modular `src/`, UI foundation, reusable component, dan shared marketplace shell sudah dibuat.
-- Semua route placeholder Phase 1 berhasil diakses dari source dan production build.
-- Audit visual menemukan risiko min-content overflow pada 360px dan sudah diperbaiki.
-- `npm run build`, Python compile check, JavaScript syntax check, dan HTTP smoke test berhasil.
-- Keputusan Phase 2: SQLite pada `DATA_ROOT`, password hash `scrypt`, opaque session token yang disimpan sebagai hash, cookie HttpOnly/SameSite, API `/api/v1/auth/*`, dan role awal `member`.
-- API register/login/logout/me, protected route, dan UI auth sudah aktif.
-- Session terbukti tetap valid setelah restart server dengan `DATA_ROOT` yang sama.
-- Unit test menemukan file handle SQLite belum tertutup; connection lifecycle sudah diperbaiki dan test ulang lulus.
-- Build production, raw guest redirect, CSRF logout, origin guard, dan login validation lulus.
-- Ruang drive C sudah kembali sekitar 3,37 GB; blocker `ENOSPC` selesai.
+- Route `/admin` dan `/admin/consultation` dilindungi untuk role `admin` dan `super_admin`.
+- Dashboard admin menampilkan KPI nyata dari SQLite.
+- Consultation queue menampilkan member, thread, attachment, prioritas, dan status.
+- Admin dapat reply dan update status ticket melalui API dengan CSRF.
+- Order monitoring menyediakan filter payment/order status dan detail invoice snapshot.
+- Fulfillment berjalan berurutan dari paid, processing, shipped, hingga completed.
+- Member menerima notifikasi setiap status fulfillment berubah.
+- Product management role-based menyediakan create, edit, upload gambar, featured, stock/status, preview, dan archive.
+- Owner builder tidak lagi diperlukan untuk operasi katalog harian.
+- News Management tersedia sebagai section khusus `09 / Feira IT News` pada Owner Tool Builder.
+- Owner dapat mengelola kategori, draft/publish/archive, featured, trending score, reading time, cover, dan preview artikel.
+- Navigation admin tersedia pada desktop dan mobile sesuai role.
+- Source dan production build memakai service admin modular.
+- Seluruh test suite lulus 48 test.
 
-### Files Created / Modified
-- `TODO.md`
-- `src/app/marketplace-app.js`
-- `src/components/**`
-- `src/config/marketplace.js`
-- `src/layouts/MarketplaceLayout.js`
-- `src/modules/**`
-- `src/pages/marketplace-shell.html`
-- `src/services/README.md`
-- `src/styles/**`
-- `src/utils/README.md`
+### Active Files
 - `app.py`
-- `scripts/build.js`
-- `Dockerfile`
-- `index.html`
-- `sitemap.xml`
+- `marketplace_admin.py`
+- `marketplace_consultation.py`
+- `src/app/marketplace-app.js`
+- `src/layouts/MarketplaceLayout.js`
+- `src/services/admin-service.js`
+- `src/styles/components.css`
+- `src/styles/responsive.css`
+- `tests/test_marketplace_admin.py`
+- `tests/test_marketplace_consultation.py`
 - `docs/MARKET_FEIRA_ROADMAP.md`
-- `marketplace_auth.py`
-- `tests/test_marketplace_auth.py`
-- `.env.example`
-- `src/services/auth-service.js`
 
 ### Issues / Notes
-- Repo tidak memakai frontend framework; struktur guideline diadaptasikan ke ES modules dan static page shell.
-- Dokumen Feira masih untracked dan tidak boleh tertimpa.
-- Data demo yang digunakan pada Phase 1 harus diberi label mock/seed sementara.
-- Order content, consultation workflow, checkout transaction, dan product detail masih UI placeholder.
-- Database, session member, auth middleware, dan auth API foundation sudah diimplementasikan.
-- Cart persistence, payment, upload system, logging system, dan API module lain belum diimplementasikan.
-- Register/login akan memakai rate limit in-memory dasar; hardening terdistribusi tetap menjadi scope Phase 10.
-- Forgot password, profile settings, avatar, dan notification center tidak termasuk stage terbatas ini.
-- Role schema sudah future-ready, tetapi role management/admin assignment belum tersedia.
-- Session database memakai schema bootstrap idempotent; migration versioning formal belum tersedia.
-- Audit screenshot final Edge headless mengalami timeout setelah cache-buster update; source responsive fix, route, dan build test tetap berhasil.
-- Drive C hanya menyisakan sekitar 24 MB setelah audit; build/test sempat gagal `ENOSPC` dan berhasil setelah folder audit sementara dibersihkan. Ruang disk perlu ditambah sebelum stage berikutnya.
+- Endpoint product owner lama masih tersedia sebagai compatibility path sementara.
+- News management sengaja memakai credential owner, bukan role admin.
+- Member management belum memiliki UI admin baru.
+- Logging system foundation masih terbuka dari Phase 1.
+- Security hardening menyeluruh tetap menjadi scope Phase 10.
 
 ### Next Step
-- Tambahkan schema migration tracker dan tabel `member_profiles`.
-- Buat API GET/PUT profile dengan session, same-origin, CSRF, dan validation.
-- Buat route `/member/profile` serta form settings mobile-first.
-- Verifikasi upgrade database existing, persistence, build, dan responsive behavior.
+- Lanjutkan member management.
 
 ### Checklist
-- [x] Baca roadmap dan seluruh foundation docs.
-- [x] Identifikasi stack serta batas implementasi Phase 1.
-- [x] Buat struktur folder `src`.
-- [x] Buat module placeholder.
-- [x] Buat UI foundation mobile-first.
-- [x] Buat reusable component awal.
-- [x] Buat route/page placeholder.
-- [x] Verifikasi build dan route.
-- [x] Update roadmap dan tracker akhir.
-- [x] Buat persistence user SQLite.
-- [x] Buat password hashing dan verification.
-- [x] Buat persistent member session.
-- [x] Buat API register/login/logout/me.
-- [x] Proteksi route member dan checkout.
-- [x] Sambungkan form auth dan header member.
-- [x] Verifikasi restart persistence dan security behavior.
-- [x] Update roadmap dan tracker Phase 2.
-- [ ] Tambahkan schema migration versioning.
-- [ ] Buat persistence dan validation member profile.
-- [ ] Buat API GET/PUT member profile.
-- [ ] Buat route dan UI profile settings.
-- [ ] Verifikasi migration, persistence, security, dan responsive behavior.
-- [ ] Update roadmap dan tracker profile stage.
+- [x] Buat protected admin routes.
+- [x] Buat admin dashboard shell.
+- [x] Buat KPI API dan cards.
+- [x] Buat consultation queue UI.
+- [x] Sambungkan admin reply dan status update.
+- [x] Tambahkan test permission dan KPI.
+- [x] Sinkronkan roadmap dan tracker.
+- [x] Buat order monitoring.
+- [x] Buat filter payment dan order status.
+- [x] Tampilkan detail snapshot invoice.
+- [x] Buat state machine fulfillment.
+- [x] Kirim notifikasi fulfillment ke member.
+- [x] Buat product management.
+- [x] Buat product create dan edit.
+- [x] Buat upload media produk berbasis role admin.
+- [x] Buat stock, status, featured, preview, dan archive.
+- [x] Buat News Management pada Owner Tool Builder.
+- [x] Buat category create dan edit.
+- [x] Buat article draft, publish, edit, preview, dan archive.
+- [x] Buat cover upload dengan file signature validation.
+- [ ] Buat member management.

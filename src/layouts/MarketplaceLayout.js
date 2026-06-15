@@ -4,6 +4,8 @@ import { renderSiteHeader } from "../components/navigation/SiteHeader.js";
 export function renderMarketplaceLayout({ content, activeRoute, session, unreadCount = 0, cartCount = 0 }) {
   const isActive = (route) => activeRoute === route ? ' aria-current="page"' : "";
   const memberRoutes = ["member", "profile", "notifications", "orders"];
+  const adminRoutes = ["admin", "admin-consultation", "admin-orders", "admin-products"];
+  const isAdmin = ["admin", "super_admin"].includes(session?.user?.role);
   const isMemberActive = memberRoutes.includes(activeRoute)
     ? ' aria-current="page"'
     : "";
@@ -13,14 +15,15 @@ export function renderMarketplaceLayout({ content, activeRoute, session, unreadC
       { name: "Marketplace", href: "/marketplace", active: activeRoute === "marketplace" || activeRoute === "product" },
       { name: "IT News", href: "/news", active: activeRoute === "news" },
       { name: "Consultation", href: "/member/consultation", active: activeRoute === "consultation" },
+      ...(isAdmin ? [{ name: "Admin", href: "/admin", active: adminRoutes.includes(activeRoute) }] : []),
       { name: "Member", href: "/member", active: memberRoutes.includes(activeRoute) },
     ],
     action: session
       ? {
           label: session.user.name,
-          href: "/member",
+          href: isAdmin && adminRoutes.includes(activeRoute) ? "/admin" : "/member",
           title: session.user.email,
-          active: memberRoutes.includes(activeRoute),
+          active: memberRoutes.includes(activeRoute) || adminRoutes.includes(activeRoute),
         }
       : {
           label: "Login",
@@ -37,7 +40,7 @@ export function renderMarketplaceLayout({ content, activeRoute, session, unreadC
         <a href="/news"${isActive("news")}><span>IT News</span></a>
         ${session ? `
           <a href="/member/notifications"${isActive("notifications")}><span>Notifikasi${unreadCount ? ` (${unreadCount})` : ""}</span></a>
-          <a href="/member"${isMemberActive}><span>Member</span></a>
+          <a href="${isAdmin ? "/admin" : "/member"}"${isAdmin && adminRoutes.includes(activeRoute) ? ' aria-current="page"' : isMemberActive}><span>${isAdmin ? "Admin" : "Member"}</span></a>
         ` : `
           <a href="/member/consultation"${isActive("consultation")}><span>Konsultasi</span></a>
           <a href="/login"${isActive("login")}><span>Login</span></a>
@@ -52,6 +55,6 @@ export function renderMarketplaceLayout({ content, activeRoute, session, unreadC
         </div>
       </div>
     </footer>
-    ${activeRoute === "checkout" ? "" : renderFloatingCartButton(cartCount, session)}
+    ${activeRoute === "checkout" || adminRoutes.includes(activeRoute) ? "" : renderFloatingCartButton(cartCount, session)}
   `;
 }

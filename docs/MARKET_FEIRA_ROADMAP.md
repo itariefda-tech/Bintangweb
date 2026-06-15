@@ -10,7 +10,7 @@
 
 ## Current Position
 
-Foundation & architecture planning stage.
+Phase 8 - Admin Ecosystem active. Dashboard, order, product, consultation, and owner-credential news management are complete.
 
 ## Main Objective
 
@@ -320,20 +320,32 @@ Membangun layanan konsultasi IT.
 
 ## Consultation Features
 
-* [ ] Consultation ticket
-* [ ] Consultation dashboard
-* [ ] Ticket status
-* [ ] Reply system
-* [ ] File attachment
-* [ ] Consultation history
+* [x] Consultation ticket
+* [x] Consultation dashboard
+* [x] Ticket status
+* [x] Reply system
+* [x] File attachment
+* [x] Consultation history
 
 ---
 
 ## Admin Features
 
-* [ ] Consultation queue
-* [ ] Ticket monitoring
-* [ ] Ticket status update
+* [x] Consultation queue
+* [x] Ticket monitoring
+* [x] Ticket status update
+
+## Output / Result - Consultation System (2026-06-15)
+
+* Schema versi 7 menyediakan consultation ticket, reply thread, dan attachment metadata/file storage.
+* Member dapat membuat ticket konsultasi dari `/member/consultation`, melihat history, status, prioritas, kategori, reply, dan attachment.
+* Reply member mengubah status menjadi `in_review`; reply admin mengubah status menjadi `waiting_member`.
+* Attachment JPG, PNG, dan PDF divalidasi dari file signature, dibatasi 5MB, dan disimpan pada private data volume.
+* Attachment hanya dapat diunduh oleh pemilik ticket atau admin melalui endpoint terautentikasi.
+* Admin API tersedia untuk queue konsultasi, reply, dan update status ticket.
+* Status ticket mendukung `open`, `in_review`, `waiting_member`, `resolved`, dan `closed`.
+* Notifikasi member otomatis dibuat saat ticket dibuat, dibalas, atau status berubah.
+* Unit test mencakup create ticket, reply, admin queue/status, permission, dan validation.
 
 ---
 
@@ -345,12 +357,22 @@ Membangun koran teknologi modern.
 
 ## Features
 
-* [ ] Article system
-* [ ] Featured article
-* [ ] Trending article
-* [ ] Article category
-* [ ] Related article
-* [ ] Search article
+* [x] Article system
+* [x] Featured article
+* [x] Trending article
+* [x] Article category
+* [x] Related article
+* [x] Search article
+
+## Output / Result - Feira IT News (2026-06-15)
+
+* Schema versi 8 menyediakan kategori dan artikel news terpublikasi.
+* Seed artikel teknologi awal idempotent tersedia untuk infrastructure, security, dan digital workflow.
+* API publik tersedia untuk listing artikel, kategori, featured, trending, search, dan detail slug.
+* Halaman `/news` memakai data API nyata dengan filter kategori, search, featured, dan trending.
+* Route `/news/{slug}` menampilkan detail artikel dan related article.
+* Card news tidak lagi memakai mock content Phase 1.
+* Unit test mencakup seed idempotent, kategori count, search, featured, trending, related article, dan visibility artikel archived.
 
 ---
 
@@ -370,12 +392,32 @@ Membangun admin dashboard ecosystem.
 
 ## Admin Dashboard
 
-* [ ] KPI dashboard
-* [ ] Order monitoring
-* [ ] Product management
-* [ ] Consultation management
-* [ ] News management
+* [x] KPI dashboard
+* [x] Order monitoring
+* [x] Product management
+* [x] Consultation management
+* [x] News management
 * [ ] Member management
+
+## Output / Result - Admin Foundation (2026-06-15)
+
+* Route `/admin` dan `/admin/consultation` memakai shared marketplace shell dan dilindungi server-side untuk role `admin` serta `super_admin`.
+* Guest diarahkan ke login dengan safe next path; member biasa menerima HTTP 403.
+* KPI dashboard dihitung dari SQLite untuk member aktif, total order, omzet paid, payment pending, ticket aktif, dan ticket urgent.
+* Consultation queue admin menampilkan identitas member, prioritas, status, thread lengkap, dan attachment private.
+* Admin dapat memfilter queue berdasarkan status, mengirim reply, serta memperbarui status ticket dengan session, same-origin, dan CSRF validation.
+* Route `/admin/orders` menyediakan filter payment status dan order status dengan detail snapshot invoice, customer, shipping, item, dan total.
+* Fulfillment memakai transisi tervalidasi `paid` ke `processing`, `shipped`, lalu `completed`; order unpaid dan lompatan status ditolak.
+* Setiap perubahan fulfillment membuat notifikasi persisten untuk member.
+* Route `/admin/products` menyediakan listing seluruh produk, create, edit, featured flag, stock/status management, preview, dan archive.
+* Upload gambar produk memakai session admin, same-origin, CSRF, format image yang diizinkan, serta private server credential boundary.
+* Operasi katalog sekarang tersedia melalui API `/api/v1/admin/products*`; owner builder lama hanya dipertahankan sebagai compatibility path sementara.
+* News Management ditempatkan sebagai section `09 / Feira IT News` pada Owner Tool Builder sesuai keputusan credential boundary owner.
+* Editor news menyediakan category create/edit, article create/edit, draft/published/archived, featured, trending score, reading time, cover upload, preview, dan archive.
+* API `/api/owner/news*` hanya tersedia untuk sesi owner dan mutasi dilindungi same-origin.
+* Cover JPG, PNG, WebP, atau GIF dibatasi 10MB dan divalidasi berdasarkan MIME serta file signature.
+* Navigasi desktop dan mobile menampilkan entry admin hanya untuk role yang diizinkan.
+* Unit test mencakup KPI, permission, consultation, order fulfillment, product CRUD, serta category/article news lifecycle.
 
 ---
 

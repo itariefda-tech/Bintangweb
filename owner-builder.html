@@ -233,6 +233,88 @@
         </div>
       </section>
 
+      <section class="owner-panel">
+        <div class="owner-panel-heading">
+          <div>
+            <p class="owner-index">09 / Feira IT News</p>
+            <h2>News management</h2>
+          </div>
+          <span class="owner-badge owner-badge-live">Owner credential</span>
+        </div>
+        <p class="owner-note">Kelola kategori, draft, publikasi, featured article, trending score, dan cover News dari workspace owner.</p>
+        <div class="owner-news-layout">
+          <aside class="owner-news-categories">
+            <form class="owner-product-form" data-news-category-form>
+              <input type="hidden" name="id">
+              <fieldset class="owner-product-section">
+                <legend>Kategori news</legend>
+                <div class="owner-product-grid">
+                  <label>Nama kategori<input type="text" name="name" minlength="2" maxlength="120" required></label>
+                  <label>Slug<input type="text" name="slug" maxlength="120" placeholder="otomatis-dari-nama"></label>
+                  <label>Status
+                    <select name="status">
+                      <option value="active">Aktif</option>
+                      <option value="inactive">Nonaktif</option>
+                    </select>
+                  </label>
+                  <label>Deskripsi<textarea name="description" rows="3" maxlength="500"></textarea></label>
+                </div>
+              </fieldset>
+              <div class="owner-form-actions">
+                <button class="owner-button" type="submit">Simpan kategori</button>
+                <button class="owner-button owner-button-quiet" type="button" data-news-category-reset>Kategori baru</button>
+              </div>
+            </form>
+            <div class="owner-record-list" data-news-category-list>
+              <p class="owner-note">Memuat kategori...</p>
+            </div>
+          </aside>
+          <div class="owner-news-articles">
+            <form class="owner-product-form" data-news-article-form>
+              <input type="hidden" name="id">
+              <fieldset class="owner-product-section">
+                <legend>Informasi artikel</legend>
+                <div class="owner-product-grid owner-news-info-grid">
+                  <label>Judul<input type="text" name="title" minlength="5" maxlength="180" required></label>
+                  <label>Slug<input type="text" name="slug" maxlength="180" placeholder="otomatis-dari-judul"></label>
+                  <label>Kategori<select name="category" required data-news-article-category></select></label>
+                  <label>Reading time<input type="text" name="readingTime" maxlength="40" value="3 min read"></label>
+                  <label>Status
+                    <select name="status">
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </label>
+                  <label>Trending score<input type="number" name="trendingScore" min="0" max="100000" step="1" value="0"></label>
+                  <label class="owner-check"><input type="checkbox" name="featured"> Featured article</label>
+                  <label class="owner-news-wide">Excerpt<textarea name="excerpt" rows="3" minlength="20" maxlength="500" required></textarea></label>
+                  <label class="owner-news-wide">Isi artikel<textarea name="body" rows="10" minlength="40" maxlength="20000" required></textarea></label>
+                </div>
+              </fieldset>
+              <fieldset class="owner-product-section">
+                <legend>Cover artikel</legend>
+                <div class="owner-product-grid owner-product-media-grid">
+                  <label class="owner-media-url">URL cover<input type="text" name="image" maxlength="500" required placeholder="/owner-media/news-....webp"></label>
+                  <label class="owner-file owner-media-file">
+                    <span>Pilih cover news</span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-news-image-file>
+                  </label>
+                  <button class="owner-button owner-button-quiet" type="button" data-news-image-upload>Upload cover</button>
+                </div>
+              </fieldset>
+              <div class="owner-form-actions">
+                <button class="owner-button" type="submit">Simpan artikel</button>
+                <button class="owner-button owner-button-quiet" type="button" data-news-article-reset>Artikel baru</button>
+              </div>
+            </form>
+            <div class="owner-record-list" data-news-article-list>
+              <p class="owner-note">Memuat artikel...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div class="owner-actions">
         <p>Perubahan client, testimoni, dan audio diterapkan setelah tombol simpan ditekan.</p>
         <button class="owner-button owner-button-large" type="button" data-save-settings>Simpan perubahan</button>
