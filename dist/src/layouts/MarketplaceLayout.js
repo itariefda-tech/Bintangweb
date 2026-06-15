@@ -18,6 +18,16 @@ export function renderMarketplaceLayout({ content, activeRoute, session, unreadC
       ...(isAdmin ? [{ name: "Admin", href: "/admin", active: adminRoutes.includes(activeRoute) }] : []),
       { name: "Member", href: "/member", active: memberRoutes.includes(activeRoute) },
     ],
+    sectionMenu: activeRoute === "marketplace"
+      ? {
+          label: "Section",
+          items: [
+            { name: "Hero brand", href: "#market-hero" },
+            { name: "Katalog", href: "#produk" },
+            { name: "Featured", href: "#featured" },
+          ],
+        }
+      : null,
     action: session
       ? {
           label: session.user.name,

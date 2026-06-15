@@ -47,3 +47,106 @@ html {
 .mf-body select {
   font: inherit;
 }
+
+.mf-site-header {
+  background-color: rgba(231, 241, 246, 0.76);
+  background-image:
+    linear-gradient(90deg, rgba(255, 249, 239, 0.74), rgba(234, 244, 249, 0.38) 52%, rgba(38, 91, 134, 0.24)),
+    url("/assets/images/brand-hero--03.webp");
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+}
+
+.mf-site-header.is-scrolled {
+  background-color: rgba(231, 241, 246, 0.9);
+  background-image:
+    linear-gradient(90deg, rgba(255, 249, 239, 0.82), rgba(234, 244, 249, 0.46) 52%, rgba(38, 91, 134, 0.32)),
+    url("/assets/images/brand-hero--03.webp");
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+}
+
+.mf-site-header .mobile-menu {
+  background-color: rgba(226, 239, 246, 0.94);
+  background-image:
+    linear-gradient(180deg, rgba(255, 249, 239, 0.56), rgba(219, 235, 244, 0.82)),
+    url("/assets/images/brand-hero--03.webp");
+  background-position: center, center bottom;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+}
+
+.mf-site-header .market-section-menu {
+  position: relative;
+  display: none;
+}
+
+.mf-site-header .market-section-menu summary {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(75, 150, 182, 0.22);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  color: #23455e;
+  font-size: 0.86rem;
+  font-weight: 800;
+  list-style: none;
+  cursor: pointer;
+  background: rgba(255, 252, 246, 0.48);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.18);
+}
+
+.mf-site-header .market-section-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.mf-site-header .market-section-menu summary::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  rotate: 45deg;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  translate: 0 -0.1rem;
+}
+
+.mf-site-header .market-section-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  display: grid;
+  width: max-content;
+  min-width: 190px;
+  gap: 0.35rem;
+  border: 1px solid rgba(75, 150, 182, 0.22);
+  border-radius: 1rem;
+  padding: 0.55rem;
+  background: rgba(255, 252, 246, 0.94);
+  box-shadow: 0 18px 42px rgba(31, 68, 96, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.mf-site-header .market-section-menu__panel a,
+.mf-site-header .mobile-section-nav a {
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.85rem;
+  color: #23455e;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.mf-site-header .market-section-menu__panel a:hover,
+.mf-site-header .market-section-menu__panel a:focus-visible {
+  color: #75490d;
+  background: rgba(201, 154, 58, 0.16);
+}
+
+@media (min-width: 1024px) {
+  .mf-site-header .market-section-menu {
+    display: block;
+  }
+}

@@ -16,9 +16,22 @@ function renderNavigation(className, label, items) {
   `;
 }
 
+function renderSectionMenu(menu) {
+  if (!menu?.items?.length) return "";
+  return `
+    <details class="market-section-menu">
+      <summary>${escapeHtml(menu.label || "Section")}</summary>
+      <div class="market-section-menu__panel">
+        ${menu.items.map(({ name, href }) => `<a href="${escapeHtml(href)}">${escapeHtml(name)}</a>`).join("")}
+      </div>
+    </details>
+  `;
+}
+
 export function renderSiteHeader({
   navigationItems,
   action,
+  sectionMenu,
   navigationLabel = "Navigasi utama",
 } = {}) {
   const items = navigationItems || [
@@ -40,7 +53,7 @@ export function renderSiteHeader({
   const actionCurrent = headerAction.active ? ' aria-current="page"' : "";
 
   return `
-    <header class="site-header" data-site-header>
+    <header class="site-header mf-site-header" data-site-header>
       <div class="mf-container nav-shell">
         <a class="brand" href="/#home" aria-label="Bintang Computer Feira">
           <span class="brand-mark" aria-hidden="true">
@@ -52,6 +65,7 @@ export function renderSiteHeader({
           </span>
         </a>
         ${renderNavigation("desktop-nav", navigationLabel, items)}
+        ${renderSectionMenu(sectionMenu)}
         <a class="button button-small button-primary nav-cta" href="${headerAction.href}"${actionTitle}${actionCurrent}>${actionLabel}</a>
         <button
           class="menu-toggle"
@@ -68,6 +82,7 @@ export function renderSiteHeader({
       <div class="mobile-menu" id="marketplace-mobile-menu" data-mobile-menu hidden>
         <div class="mf-container mobile-menu-panel">
           ${renderNavigation("mobile-nav", `${navigationLabel} mobile`, items)}
+          ${sectionMenu?.items?.length ? renderNavigation("mobile-nav mobile-section-nav", "Navigasi section marketplace mobile", sectionMenu.items) : ""}
           <a class="button button-primary" href="${headerAction.href}"${actionTitle}${actionCurrent}>${actionLabel}</a>
         </div>
       </div>
@@ -100,6 +115,11 @@ export function bindSiteHeader() {
     document.body.classList.add("menu-open");
   });
   menu.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+  header.querySelectorAll(".market-section-menu a").forEach((link) => {
+    link.addEventListener("click", () => {
+      link.closest("details")?.removeAttribute("open");
+    });
+  });
   window.addEventListener("resize", () => {
     if (window.innerWidth >= 1024) closeMenu();
   }, { passive: true });
@@ -107,6 +127,8 @@ export function bindSiteHeader() {
   const updateHeaderState = () => header.classList.toggle("is-scrolled", window.scrollY > 10);
   updateHeaderState();
   window.addEventListener("scroll", updateHeaderState, { passive: true });
+
+  if (header.classList.contains("mf-site-header")) return;
 
   fetch("/api/public-settings", { credentials: "same-origin" })
     .then((response) => response.ok ? response.json() : null)

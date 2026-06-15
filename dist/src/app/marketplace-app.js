@@ -129,7 +129,20 @@ function currentAdminOrderFilters() {
 
 function renderMarketplace(_session, catalog) {
   const { products = [], categories = [], filters = {} } = catalog || {};
-  const featuredProduct = products.find((product) => product.featured) || products[0];
+  const featuredProducts = products.filter((product) => product.featured).slice(0, 3);
+  const featuredSelection = featuredProducts.length ? featuredProducts : products.slice(0, 3);
+  const readyStockCount = products.filter((product) => product.stockStatus === "in_stock").length;
+  const lowStockCount = products.filter((product) => product.stockStatus === "low_stock").length;
+  const kpiCards = [
+    { value: products.length, label: "Produk aktif" },
+    { value: categories.length, label: "Kategori" },
+    { value: featuredSelection.length, label: "Featured" },
+    { value: readyStockCount, label: "Ready stock" },
+    { value: lowStockCount, label: "Stok terbatas" },
+  ];
+  const renderKpiCards = (hidden = false) => kpiCards
+    .map((card) => `<span${hidden ? ' aria-hidden="true"' : ""}><strong>${card.value}</strong><small>${escapeHtml(card.label)}</small></span>`)
+    .join("");
   const catalogueSlides = products.length
     ? [...products, ...products]
         .map((product, index) => renderProductCard(product, { number: (index % products.length) + 1 }))
@@ -137,7 +150,11 @@ function renderMarketplace(_session, catalog) {
     : "";
   return `
     <div class="mf-marketplace-page">
-    <section class="mf-hero mf-section mf-marketplace-viewport">
+    <section class="mf-hero mf-section mf-marketplace-viewport" id="market-hero">
+      <div class="mf-hero__sparkles" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
       <div class="mf-container mf-hero__grid">
         <div class="mf-hero__content mf-stack mf-stack--lg">
           <p class="mf-eyebrow">Feira Mini Marketplace</p>
@@ -148,33 +165,25 @@ function renderMarketplace(_session, catalog) {
             ${renderPrimaryButton({ label: "Konsultasi kebutuhan", href: "/member/consultation", variant: "secondary" })}
           </div>
           <p class="mf-demo-note">${products.length} produk aktif dari ${categories.length} kategori.</p>
-          ${featuredProduct ? `
-            <article class="mf-hero__featured">
-              <p class="mf-eyebrow">Featured solution</p>
-              <h2>${escapeHtml(featuredProduct.name)}</h2>
-              <p>${escapeHtml(featuredProduct.shortDescription)}</p>
-              ${renderPrimaryButton({ label: "Lihat featured", href: "/marketplace?featured=1#produk", variant: "secondary" })}
-            </article>
-          ` : ""}
         </div>
-        <div class="mf-hero__signal" aria-label="Peta sinyal layanan IT">
-          <div class="mf-hero__signal-header">
-            <span>Live service map</span>
-            <strong>Feira OPS</strong>
-          </div>
-          <div class="mf-hero__signal-map" aria-hidden="true">
-            <span class="mf-hero__signal-node"></span>
-            <span class="mf-hero__signal-node"></span>
-            <span class="mf-hero__signal-node"></span>
-            <span class="mf-hero__signal-line"></span>
-            <span class="mf-hero__signal-line"></span>
-            <span class="mf-hero__signal-line"></span>
-          </div>
-          <div class="mf-hero__signal-footer">
-            <span>Procurement / Network / Security</span>
+        <aside class="mf-hero__insight" aria-label="Ringkasan marketplace">
+          <div class="mf-hero__insight-head">
+            <span>Marketplace pulse</span>
             <strong>${products.length}</strong>
           </div>
-        </div>
+          <div class="mf-hero__insight-main">
+            <p>Siap dipilih berdasarkan kategori, kebutuhan operasional, dan prioritas pengadaan.</p>
+            <div class="mf-hero__metrics" aria-label="Statistik katalog">
+              <div class="mf-hero__metrics-track">
+                ${renderKpiCards()}
+                ${renderKpiCards(true)}
+              </div>
+            </div>
+          </div>
+          <div class="mf-hero__chips" aria-label="Kategori unggulan">
+            ${categories.slice(0, 4).map((category) => `<a href="/marketplace?category=${escapeHtml(category.slug)}#produk">${escapeHtml(category.name)}</a>`).join("")}
+          </div>
+        </aside>
       </div>
     </section>
     <section class="mf-section mf-catalog-section mf-marketplace-viewport" id="produk">
@@ -220,6 +229,25 @@ function renderMarketplace(_session, catalog) {
           <div class="mf-empty-state mf-card">
             <h3>Produk belum ditemukan.</h3>
             <p>Coba kata kunci atau kategori lain.</p>
+          </div>
+        `}
+      </div>
+    </section>
+    <section class="mf-section mf-featured-section mf-marketplace-viewport" id="featured">
+      <div class="mf-container mf-featured-section__inner">
+        ${renderSectionHeader({
+          eyebrow: "Featured selection",
+          title: "Pilihan utama untuk kebutuhan operasional.",
+          description: "Produk yang paling sering menjadi titik awal pengadaan perangkat, jaringan, dan keamanan bisnis.",
+        })}
+        ${featuredSelection.length ? `
+          <div class="mf-featured-grid">
+            ${featuredSelection.map((product, index) => renderProductCard(product, { number: index + 1 })).join("")}
+          </div>
+        ` : `
+          <div class="mf-empty-state mf-card">
+            <h3>Featured belum tersedia.</h3>
+            <p>Daftar pilihan utama akan tampil setelah katalog aktif.</p>
           </div>
         `}
       </div>
