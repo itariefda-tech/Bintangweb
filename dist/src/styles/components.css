@@ -891,6 +891,10 @@
   padding: 1rem;
 }
 
+.mf-news-catalog-tools {
+  padding-block: 0.85rem;
+}
+
 .mf-catalog-section {
   position: relative;
   overflow: hidden;
@@ -928,7 +932,7 @@
 }
 
 .mf-catalog-track .mf-product-card {
-  width: clamp(260px, 24vw, 360px);
+  width: clamp(240px, 24vw, 340px);
   flex: 0 0 auto;
 }
 

@@ -74,6 +74,9 @@ class ConsultationStoreTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             self.store.admin_queue({**self.member, "role": "member"})
 
+        with self.assertRaises(ConsultationValidationError):
+            self.store.admin_queue(self.admin, status="not-a-status")
+
     def test_admin_can_reply_and_attachment_download_is_private(self):
         other_member = self.auth.register(
             "Other Member",

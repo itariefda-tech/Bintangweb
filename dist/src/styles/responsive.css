@@ -183,6 +183,10 @@
     padding-block: 0.5rem;
   }
 
+  .mf-news-stream .mf-news-catalog-tools {
+    padding-block: 0.5rem;
+  }
+
   .mf-catalog-section .mf-section-header {
     margin-bottom: clamp(0.55rem, 1.4svh, 0.85rem);
     padding-top: clamp(0.2rem, 0.7svh, 0.35rem);
@@ -194,7 +198,7 @@
   }
 
   .mf-catalog-track .mf-product-card {
-    width: clamp(245px, 23vw, 330px);
+    width: clamp(225px, 23vw, 310px);
   }
 
   .mf-catalog-track .mf-product-card__media {
@@ -327,7 +331,7 @@
   }
 
   .mf-catalog-track .mf-product-card {
-    width: 240px;
+    width: 220px;
   }
 
   .mf-catalog-track .mf-product-card__media,
@@ -393,7 +397,7 @@
   }
 
   .mf-news-marquee .mf-news-card {
-    width: clamp(245px, 24vw, 320px);
+    width: clamp(225px, 24vw, 300px);
   }
 
   .mf-news-stream .mf-section-header {
@@ -411,6 +415,10 @@
 
   .mf-news-stream .mf-catalog-tools {
     gap: 0.45rem;
+  }
+
+  .mf-news-stream .mf-news-catalog-tools {
+    padding-block: 0.38rem;
   }
 
   .mf-news-stream .mf-catalog-tools input,
@@ -567,7 +575,7 @@
   }
 
   .mf-catalog-track .mf-product-card {
-    width: 250px;
+    width: 230px;
   }
 
   .mf-catalog-track .mf-product-card__media {
@@ -707,7 +715,7 @@
   }
 
   .mf-catalog-track .mf-product-card {
-    width: min(78vw, 300px);
+    width: min(78vw, 280px);
   }
 
   .mf-news-marquee {

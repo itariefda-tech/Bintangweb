@@ -478,9 +478,11 @@ Menjadikan platform production ready.
 
 * Schema versi 9 menambahkan `admin_audit_logs` dengan actor, action, target, detail JSON, dan timestamp.
 * Aksi fulfillment order, product create/update, dan product archive sudah dicatat sebagai audit trail.
+* Aksi admin consultation reply, consultation status update, member status update, dan member role update sudah masuk audit trail.
 * Endpoint `/api/v1/admin/audit-logs` menyediakan review audit log dengan limit aman.
 * Audit log hanya dapat dibaca oleh role `admin` dan `super_admin`.
-* Test backend memverifikasi payload audit log, urutan aksi, dan penolakan akses member.
+* Filter status consultation queue admin memvalidasi status invalid dengan response error terstruktur.
+* Test backend memverifikasi payload audit log, urutan aksi, penolakan akses member, dan validasi filter admin.
 
 ---
 

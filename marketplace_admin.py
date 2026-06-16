@@ -6,6 +6,7 @@ import time
 import uuid
 from pathlib import Path
 
+from marketplace_auth import AuthStore
 from marketplace_catalog import CatalogStore
 
 
@@ -35,6 +36,7 @@ class AdminValidationError(ValueError):
 class AdminStore:
     def __init__(self, database_path: Path):
         self.database_path = database_path
+        self.auth = AuthStore(database_path)
         self.catalog = CatalogStore(database_path)
 
     def connect(self) -> sqlite3.Connection:
@@ -465,3 +467,65 @@ class AdminStore:
             {"slug": product["slug"], "status": product["status"]},
         )
         return product
+
+    def update_member_status(
+        self,
+        actor: dict,
+        target_user_id: object,
+        status: object,
+    ) -> dict:
+        self._require_admin(actor)
+        clean_id = self._clean(target_user_id)
+        connection = self.connect()
+        try:
+            before = connection.execute(
+                "SELECT id, email, role, status FROM users WHERE id = ?",
+                (clean_id,),
+            ).fetchone()
+        finally:
+            connection.close()
+        member = self.auth.update_member_status(clean_id, status)
+        self.record_action(
+            actor,
+            "member.status_updated",
+            "member",
+            member["id"],
+            {
+                "email": member["email"],
+                "role": member["role"],
+                "fromStatus": before["status"] if before else None,
+                "toStatus": member["status"],
+            },
+        )
+        return member
+
+    def update_member_role(
+        self,
+        actor: dict,
+        target_user_id: object,
+        role: object,
+    ) -> dict:
+        self._require_admin(actor)
+        clean_id = self._clean(target_user_id)
+        connection = self.connect()
+        try:
+            before = connection.execute(
+                "SELECT id, email, role, status FROM users WHERE id = ?",
+                (clean_id,),
+            ).fetchone()
+        finally:
+            connection.close()
+        member = self.auth.update_user_role(actor["id"], clean_id, role)
+        self.record_action(
+            actor,
+            "member.role_updated",
+            "member",
+            member["id"],
+            {
+                "email": member["email"],
+                "fromRole": before["role"] if before else None,
+                "toRole": member["role"],
+                "status": before["status"] if before else None,
+            },
+        )
+        return member

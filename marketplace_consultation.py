@@ -539,6 +539,11 @@ class ConsultationStore:
         if actor.get("role") not in {"admin", "super_admin"}:
             raise PermissionError("Hanya admin yang dapat membuka queue konsultasi.")
         clean_status = self._normalize(status)
+        if clean_status and clean_status not in TICKET_STATUS_VALUES:
+            raise ConsultationValidationError(
+                "Filter status ticket tidak valid.",
+                {"status": "Filter status ticket tidak valid."},
+            )
         conditions = ["1=1"]
         params: list[object] = []
         if clean_status:

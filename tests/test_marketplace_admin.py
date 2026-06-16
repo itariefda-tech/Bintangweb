@@ -42,6 +42,17 @@ class AdminStoreTests(unittest.TestCase):
                 (self.admin["id"],),
             )
         self.admin["role"] = "admin"
+        self.super_admin = self.auth.register(
+            "Super Admin",
+            "super@example.com",
+            "password123",
+        )
+        with self.auth.connection() as connection:
+            connection.execute(
+                "UPDATE users SET role = 'super_admin' WHERE id = ?",
+                (self.super_admin["id"],),
+            )
+        self.super_admin["role"] = "super_admin"
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -59,8 +70,8 @@ class AdminStoreTests(unittest.TestCase):
 
         kpis = self.store.dashboard_kpis(self.admin)
 
-        self.assertEqual(2, kpis["totalMembers"])
-        self.assertEqual(2, kpis["activeMembers"])
+        self.assertEqual(3, kpis["totalMembers"])
+        self.assertEqual(3, kpis["activeMembers"])
         self.assertEqual(0, kpis["totalOrders"])
         self.assertEqual(0, kpis["paidRevenue"])
         self.assertEqual(0, kpis["pendingPayments"])
@@ -248,6 +259,32 @@ class AdminStoreTests(unittest.TestCase):
             self.store.archive_product(self.member, "missing")
         with self.assertRaises(PermissionError):
             self.store.list_audit_logs(self.member)
+
+    def test_member_status_and_role_updates_are_audited(self):
+        suspended = self.store.update_member_status(
+            self.admin,
+            self.member["id"],
+            "suspended",
+        )
+        promoted = self.store.update_member_role(
+            self.super_admin,
+            self.member["id"],
+            "admin",
+        )
+
+        self.assertEqual("suspended", suspended["status"])
+        self.assertEqual("admin", promoted["role"])
+        logs = self.store.list_audit_logs(self.admin)
+        self.assertEqual(
+            ["member.role_updated", "member.status_updated"],
+            [item["action"] for item in logs[:2]],
+        )
+        self.assertEqual("member", logs[0]["targetType"])
+        self.assertEqual(self.member["id"], logs[0]["targetId"])
+        self.assertEqual("member", logs[0]["details"]["fromRole"])
+        self.assertEqual("admin", logs[0]["details"]["toRole"])
+        self.assertEqual("active", logs[1]["details"]["fromStatus"])
+        self.assertEqual("suspended", logs[1]["details"]["toStatus"])
 
 
 if __name__ == "__main__":

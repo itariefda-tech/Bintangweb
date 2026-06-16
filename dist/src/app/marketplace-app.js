@@ -693,7 +693,7 @@ function renderNews(_session, newsData = {}) {
             title: "Kabar kabar IT terbaru",
             description: "Kurasi singkat seputar jaringan, aplikasi, keamanan, operasional, dan transformasi digital.",
           })}
-        <form class="mf-catalog-tools mf-card" data-news-filter>
+        <form class="mf-catalog-tools mf-news-catalog-tools mf-card" data-news-filter>
           <label class="mf-field">
             <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website..." aria-label="Cari artikel">
           </label>

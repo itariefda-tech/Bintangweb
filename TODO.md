@@ -27,7 +27,9 @@ Phase 10 dimulai dengan security hardening backend melalui admin audit log found
 - Source dan production build memakai service admin modular.
 - Admin audit log foundation tersedia untuk fulfillment, product create/update, dan product archive.
 - Endpoint `/api/v1/admin/audit-logs` tersedia untuk review audit log role admin.
-- Seluruh test suite lulus 48 test.
+- Audit log diperluas untuk admin consultation reply, consultation status update, member status update, dan member role update.
+- Filter status consultation queue yang invalid sekarang mengembalikan validation error, bukan hasil query diam-diam.
+- Seluruh test suite lulus 49 test.
 
 ### Active Files
 - `app.py`
@@ -49,7 +51,7 @@ Phase 10 dimulai dengan security hardening backend melalui admin audit log found
 - Security hardening menyeluruh tetap menjadi scope Phase 10.
 
 ### Next Step
-- Lanjutkan Phase 10 dengan audit log untuk aksi admin lain dan hardening error handling.
+- Lanjutkan Phase 10 dengan rate limiting tambahan untuk endpoint admin mutasi dan hardening error handling global.
 
 ### Checklist
 - [x] Buat protected admin routes.
@@ -80,3 +82,6 @@ Phase 10 dimulai dengan security hardening backend melalui admin audit log found
 - [x] Log fulfillment, product create/update, dan product archive.
 - [x] Buat endpoint review audit log admin.
 - [x] Tambahkan test permission dan payload audit log.
+- [x] Log consultation reply dan status update admin.
+- [x] Log member status dan role update admin.
+- [x] Validasi filter status consultation queue admin.

@@ -771,6 +771,9 @@ class BintangHandler(SimpleHTTPRequestHandler):
             except PermissionError as error:
                 self.auth_response(403, False, str(error))
                 return
+            except ConsultationValidationError as error:
+                self.auth_response(422, False, str(error), errors=error.errors)
+                return
             self.auth_response(
                 200,
                 True,
@@ -1619,6 +1622,17 @@ class BintangHandler(SimpleHTTPRequestHandler):
                     payload.get("message"),
                     payload.get("attachment"),
                 )
+                ADMIN_STORE.record_action(
+                    session.user,
+                    "consultation.reply_created",
+                    "consultation_ticket",
+                    ticket["id"],
+                    {
+                        "ticketNumber": ticket["number"],
+                        "status": ticket["status"],
+                        "replyId": ticket["replies"][-1]["id"] if ticket["replies"] else None,
+                    },
+                )
             except ConsultationValidationError as error:
                 self.auth_response(422, False, str(error), errors=error.errors)
                 return
@@ -2056,9 +2070,7 @@ class BintangHandler(SimpleHTTPRequestHandler):
             try:
                 payload = self.read_json(MAX_AUTH_JSON_BODY)
                 role = payload.get("role") if isinstance(payload, dict) else ""
-                user = AUTH_STORE.update_user_role(
-                    session.user["id"], target_id.strip("/"), role
-                )
+                user = ADMIN_STORE.update_member_role(session.user, target_id.strip("/"), role)
             except PermissionError as error:
                 self.auth_response(403, False, str(error))
                 return
@@ -2096,7 +2108,7 @@ class BintangHandler(SimpleHTTPRequestHandler):
             try:
                 payload = self.read_json(MAX_AUTH_JSON_BODY)
                 status = payload.get("status") if isinstance(payload, dict) else ""
-                member = AUTH_STORE.update_member_status(target_id, status)
+                member = ADMIN_STORE.update_member_status(session.user, target_id, status)
             except AuthValidationError as error:
                 self.auth_response(422, False, str(error), errors=error.errors)
                 return
@@ -2126,12 +2138,30 @@ class BintangHandler(SimpleHTTPRequestHandler):
                 .strip("/")
             )
             try:
+                if session.user.get("role") not in {"admin", "super_admin"}:
+                    raise PermissionError("Hanya admin yang dapat mengubah status ticket.")
+                before = CONSULTATION_STORE.get_ticket(
+                    session.user["id"],
+                    ticket_id,
+                    include_all=True,
+                )
                 payload = self.read_json(MAX_AUTH_JSON_BODY)
                 status = payload.get("status") if isinstance(payload, dict) else ""
                 ticket = CONSULTATION_STORE.update_status(
                     session.user,
                     ticket_id,
                     status,
+                )
+                ADMIN_STORE.record_action(
+                    session.user,
+                    "consultation.status_updated",
+                    "consultation_ticket",
+                    ticket["id"],
+                    {
+                        "ticketNumber": ticket["number"],
+                        "fromStatus": before["status"],
+                        "toStatus": ticket["status"],
+                    },
                 )
             except PermissionError as error:
                 self.auth_response(403, False, str(error))
