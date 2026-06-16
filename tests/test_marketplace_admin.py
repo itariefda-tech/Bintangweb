@@ -25,6 +25,7 @@ class AdminStoreTests(unittest.TestCase):
         self.cart.initialize()
         self.consultation.initialize()
         self.store = AdminStore(self.database)
+        self.store.initialize()
         self.member = self.auth.register(
             "Member User",
             "member@example.com",
@@ -149,6 +150,13 @@ class AdminStoreTests(unittest.TestCase):
                 for item in notifications["items"]
             )
         )
+        logs = self.store.list_audit_logs(self.admin)
+        fulfillment_logs = [
+            item for item in logs if item["action"] == "order.fulfillment_update"
+        ]
+        self.assertEqual(3, len(fulfillment_logs))
+        self.assertEqual(order["id"], fulfillment_logs[0]["targetId"])
+        self.assertEqual("completed", fulfillment_logs[0]["details"]["toStatus"])
 
     def test_fulfillment_rejects_unpaid_and_status_jump(self):
         self.cart.add_item(self.member["id"], "company-website-launch", 1)
@@ -223,6 +231,13 @@ class AdminStoreTests(unittest.TestCase):
 
         archived = self.store.archive_product(self.admin, created["id"])
         self.assertEqual("archived", archived["status"])
+        logs = self.store.list_audit_logs(self.admin)
+        self.assertEqual(
+            ["product.archived", "product.updated", "product.created"],
+            [item["action"] for item in logs[:3]],
+        )
+        self.assertEqual(created["id"], logs[0]["targetId"])
+        self.assertEqual("admin@example.com", logs[0]["actor"]["email"])
 
     def test_member_cannot_manage_products(self):
         with self.assertRaises(PermissionError):
@@ -231,6 +246,8 @@ class AdminStoreTests(unittest.TestCase):
             self.store.save_product(self.member, {})
         with self.assertRaises(PermissionError):
             self.store.archive_product(self.member, "missing")
+        with self.assertRaises(PermissionError):
+            self.store.list_audit_logs(self.member)
 
 
 if __name__ == "__main__":

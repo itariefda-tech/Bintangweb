@@ -173,7 +173,6 @@
 
   .mf-news-stream .mf-catalog-tools {
     margin-bottom: 0;
-    padding: clamp(0.65rem, 1.35svh, 0.95rem);
   }
 
   .mf-news-stream .mf-catalog-tools input,
@@ -412,7 +411,6 @@
 
   .mf-news-stream .mf-catalog-tools {
     gap: 0.45rem;
-    padding: 0.55rem;
   }
 
   .mf-news-stream .mf-catalog-tools input,

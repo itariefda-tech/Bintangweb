@@ -840,6 +840,33 @@ class BintangHandler(SimpleHTTPRequestHandler):
             )
             return
 
+        if path == "/api/v1/admin/audit-logs":
+            session = self.member_session()
+            if not session:
+                self.auth_response(401, False, "Sesi member tidak valid.")
+                return
+            try:
+                limit = int(query.get("limit", ["50"])[0])
+                logs = ADMIN_STORE.list_audit_logs(session.user, limit=limit)
+            except ValueError:
+                self.auth_response(
+                    422,
+                    False,
+                    "Limit audit log tidak valid.",
+                    errors={"limit": "Limit harus berupa angka."},
+                )
+                return
+            except PermissionError as error:
+                self.auth_response(403, False, str(error))
+                return
+            self.auth_response(
+                200,
+                True,
+                "Audit log admin tersedia.",
+                {"logs": logs, "count": len(logs)},
+            )
+            return
+
         if path == "/api/v1/admin/members":
             session = self.member_session()
             if not session:
@@ -2344,6 +2371,7 @@ def main():
     PAYMENT_STORE.initialize()
     CONSULTATION_STORE.initialize()
     NEWS_STORE.initialize()
+    ADMIN_STORE.initialize()
     AUTH_STORE.cleanup_expired_sessions()
     server = ThreadingHTTPServer((HOST, PORT), BintangHandler)
     print(f"Bintang Computer Feira server: http://{HOST}:{PORT}")

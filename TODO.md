@@ -2,10 +2,10 @@
 ## Mini Marketplace Feira Development Tracker
 
 ### Active Phase
-PHASE 9 - VISUAL POLISH & CINEMATIC EXPERIENCE
+PHASE 10 - SECURITY & HARDENING
 
 ### Current Focus
-Phase 9 diselesaikan dengan polish visual marketplace, rollback background uji visual, widget hero baru, dan skeleton loading.
+Phase 10 dimulai dengan security hardening backend melalui admin audit log foundation.
 
 ### Last Progress
 - Route `/admin` dan `/admin/consultation` dilindungi untuk role `admin` dan `super_admin`.
@@ -25,6 +25,8 @@ Phase 9 diselesaikan dengan polish visual marketplace, rollback background uji v
 - Widget hero marketplace diganti dengan signal map baru, bukan widget visual panel/orb sebelumnya.
 - Skeleton loading awal tersedia agar transisi fetch data terasa lebih premium.
 - Source dan production build memakai service admin modular.
+- Admin audit log foundation tersedia untuk fulfillment, product create/update, dan product archive.
+- Endpoint `/api/v1/admin/audit-logs` tersedia untuk review audit log role admin.
 - Seluruh test suite lulus 48 test.
 
 ### Active Files
@@ -44,11 +46,10 @@ Phase 9 diselesaikan dengan polish visual marketplace, rollback background uji v
 ### Issues / Notes
 - Endpoint product owner lama masih tersedia sebagai compatibility path sementara.
 - News management sengaja memakai credential owner, bukan role admin.
-- Logging system foundation masih terbuka dari Phase 1.
 - Security hardening menyeluruh tetap menjadi scope Phase 10.
 
 ### Next Step
-- Lanjutkan Phase 10 security hardening.
+- Lanjutkan Phase 10 dengan audit log untuk aksi admin lain dan hardening error handling.
 
 ### Checklist
 - [x] Buat protected admin routes.
@@ -75,3 +76,7 @@ Phase 9 diselesaikan dengan polish visual marketplace, rollback background uji v
 - [x] Rollback background header dan marketplace hero ke background semula.
 - [x] Ganti widget hero lama dengan widget signal map baru.
 - [x] Tuntaskan Phase 9 visual polish dan skeleton loading.
+- [x] Buat admin audit log foundation.
+- [x] Log fulfillment, product create/update, dan product archive.
+- [x] Buat endpoint review audit log admin.
+- [x] Tambahkan test permission dan payload audit log.

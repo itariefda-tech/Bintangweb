@@ -662,12 +662,13 @@ function renderNews(_session, newsData = {}) {
   return `
     <div class="mf-news-page">
       <section class="mf-section mf-news-hero mf-news-viewport" id="news-hero">
+        <span class="mf-section-anchor" aria-hidden="true"></span>
         <div class="mf-hero__sparkles" aria-hidden="true">
           ${Array.from({ length: 10 }, () => "<span></span>").join("")}
         </div>
         <div class="mf-container mf-news-hero__grid">
           <header class="mf-news-hero__content">
-            <p class="mf-eyebrow">Feira IT News</p>
+            <p class="mf-eyebrow mf-news-eyebrow">Feira IT News</p>
             <h1>Insight ringkas untuk keputusan teknologi yang lebih jernih.</h1>
             <p class="mf-lead">${articles.length} artikel tersedia dari ${categories.length} kategori.</p>
           </header>
@@ -685,6 +686,7 @@ function renderNews(_session, newsData = {}) {
         </div>
       </section>
       <section class="mf-section mf-news-stream mf-news-viewport" id="news-stream">
+        <span class="mf-section-anchor" aria-hidden="true"></span>
         <div class="mf-container mf-news-stream__inner">
           ${renderSectionHeader({
             eyebrow: "News Stream",
@@ -692,11 +694,11 @@ function renderNews(_session, newsData = {}) {
             description: "Kurasi singkat seputar jaringan, aplikasi, keamanan, operasional, dan transformasi digital.",
           })}
         <form class="mf-catalog-tools mf-card" data-news-filter>
-          <label class="mf-field">Cari artikel
-            <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website...">
+          <label class="mf-field">
+            <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website..." aria-label="Cari artikel">
           </label>
-          <label class="mf-field">Kategori
-            <select name="category">
+          <label class="mf-field">
+            <select name="category" aria-label="Kategori">
               <option value="">Semua kategori</option>
               ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.articleCount})</option>`).join("")}
             </select>
@@ -1898,6 +1900,23 @@ function updateCartCount(cart) {
   if (count) count.textContent = cart.itemCount;
 }
 
+function scrollHashTargetIntoView(route) {
+  if (route !== "news" || !window.location.hash) return;
+  const scrollToTarget = () => {
+    let id = "";
+    try {
+      id = window.decodeURIComponent(window.location.hash.slice(1));
+    } catch {
+      id = window.location.hash.slice(1);
+    }
+    const target = id ? document.getElementById(id) : null;
+    if (!target) return;
+    target.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+  };
+  window.setTimeout(scrollToTarget, 120);
+  window.setTimeout(scrollToTarget, 700);
+}
+
 function bindAddCart(session) {
   const form = document.querySelector("[data-add-cart]");
   if (!form || !session) return;
@@ -2256,6 +2275,7 @@ async function bootstrap() {
   bindCartEditor(session);
   bindCheckout(session);
   bindPaymentForms(session);
+  scrollHashTargetIntoView(route);
 }
 
 bootstrap();

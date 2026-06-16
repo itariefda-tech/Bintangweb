@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 import time
 import uuid
@@ -42,6 +43,59 @@ class AdminStore:
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA busy_timeout = 10000")
         return connection
+
+    def initialize(self) -> None:
+        self.database_path.parent.mkdir(parents=True, exist_ok=True)
+        connection = self.connect()
+        try:
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS schema_migrations (
+                    version INTEGER PRIMARY KEY,
+                    applied_at INTEGER NOT NULL
+                )
+                """
+            )
+            applied = {
+                row["version"]
+                for row in connection.execute(
+                    "SELECT version FROM schema_migrations"
+                ).fetchall()
+            }
+            if 9 not in applied:
+                connection.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS admin_audit_logs (
+                        id TEXT PRIMARY KEY,
+                        actor_id TEXT NOT NULL,
+                        actor_email TEXT NOT NULL,
+                        actor_role TEXT NOT NULL,
+                        action TEXT NOT NULL,
+                        target_type TEXT NOT NULL,
+                        target_id TEXT NOT NULL,
+                        details TEXT NOT NULL DEFAULT '{}',
+                        created_at INTEGER NOT NULL,
+                        FOREIGN KEY (actor_id) REFERENCES users(id)
+                    );
+
+                    CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created
+                        ON admin_audit_logs(created_at DESC);
+                    CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_actor
+                        ON admin_audit_logs(actor_id, created_at DESC);
+                    CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_target
+                        ON admin_audit_logs(target_type, target_id, created_at DESC);
+                    """
+                )
+                connection.execute(
+                    "INSERT INTO schema_migrations (version, applied_at) VALUES (9, ?)",
+                    (int(time.time()),),
+                )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
 
     @staticmethod
     def _require_admin(actor: dict) -> None:
@@ -96,6 +150,93 @@ class AdminStore:
     @staticmethod
     def _clean(value: object) -> str:
         return " ".join(str(value or "").strip().split())
+
+    @staticmethod
+    def _audit_payload(row: sqlite3.Row) -> dict:
+        try:
+            details = json.loads(row["details"] or "{}")
+        except json.JSONDecodeError:
+            details = {}
+        return {
+            "id": row["id"],
+            "actor": {
+                "id": row["actor_id"],
+                "email": row["actor_email"],
+                "role": row["actor_role"],
+            },
+            "action": row["action"],
+            "targetType": row["target_type"],
+            "targetId": row["target_id"],
+            "details": details,
+            "createdAt": row["created_at"],
+        }
+
+    def _record_action(
+        self,
+        connection: sqlite3.Connection,
+        actor: dict,
+        action: str,
+        target_type: str,
+        target_id: object,
+        details: dict | None = None,
+    ) -> None:
+        connection.execute(
+            """
+            INSERT INTO admin_audit_logs (
+                id, actor_id, actor_email, actor_role, action, target_type,
+                target_id, details, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(uuid.uuid4()),
+                actor.get("id", ""),
+                actor.get("email", ""),
+                actor.get("role", ""),
+                action,
+                target_type,
+                self._clean(target_id),
+                json.dumps(details or {}, separators=(",", ":"), sort_keys=True),
+                int(time.time()),
+            ),
+        )
+
+    def record_action(
+        self,
+        actor: dict,
+        action: str,
+        target_type: str,
+        target_id: object,
+        details: dict | None = None,
+    ) -> None:
+        self._require_admin(actor)
+        connection = self.connect()
+        try:
+            self._record_action(connection, actor, action, target_type, target_id, details)
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
+    def list_audit_logs(self, actor: dict, limit: int = 50) -> list[dict]:
+        self._require_admin(actor)
+        clean_limit = max(1, min(int(limit or 50), 100))
+        connection = self.connect()
+        try:
+            rows = connection.execute(
+                """
+                SELECT id, actor_id, actor_email, actor_role, action, target_type,
+                    target_id, details, created_at
+                FROM admin_audit_logs
+                ORDER BY created_at DESC, rowid DESC
+                LIMIT ?
+                """,
+                (clean_limit,),
+            ).fetchall()
+            return [self._audit_payload(row) for row in rows]
+        finally:
+            connection.close()
 
     @staticmethod
     def _public_order(row: sqlite3.Row, items: list[dict] | None = None) -> dict:
@@ -268,6 +409,18 @@ class AdminStore:
                     now,
                 ),
             )
+            self._record_action(
+                connection,
+                actor,
+                "order.fulfillment_update",
+                "order",
+                clean_id,
+                {
+                    "invoiceNumber": order["invoice_number"],
+                    "fromStatus": order["order_status"],
+                    "toStatus": clean_status,
+                },
+            )
             connection.commit()
         except Exception:
             connection.rollback()
@@ -287,8 +440,28 @@ class AdminStore:
         product_id: str | None = None,
     ) -> dict:
         self._require_admin(actor)
-        return self.catalog.save_product(payload, product_id)
+        product = self.catalog.save_product(payload, product_id)
+        self.record_action(
+            actor,
+            "product.updated" if product_id else "product.created",
+            "product",
+            product["id"],
+            {
+                "slug": product["slug"],
+                "status": product["status"],
+                "stock": product["stock"],
+            },
+        )
+        return product
 
     def archive_product(self, actor: dict, product_id: object) -> dict:
         self._require_admin(actor)
-        return self.catalog.archive_product(self._clean(product_id))
+        product = self.catalog.archive_product(self._clean(product_id))
+        self.record_action(
+            actor,
+            "product.archived",
+            "product",
+            product["id"],
+            {"slug": product["slug"], "status": product["status"]},
+        )
+        return product
