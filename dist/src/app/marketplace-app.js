@@ -657,14 +657,20 @@ function renderConsultation(_session, tickets = []) {
 function renderNews(_session, newsData = {}) {
   const { articles = [], categories = [], filters = {} } = newsData || {};
   const featured = articles.find((article) => article.featured) || articles[0];
+  const articleCards = articles.map(renderNewsCard).join("");
+  const marqueeCards = articles.length ? [...articles, ...articles].map(renderNewsCard).join("") : "";
   return `
-    <section class="mf-section">
-      <div class="mf-container">
-        ${renderSectionHeader({
-          eyebrow: "Feira IT News",
-          title: "Insight ringkas untuk keputusan teknologi yang lebih jernih.",
-          description: `${articles.length} artikel tersedia dari ${categories.length} kategori.`,
-        })}
+    <div class="mf-news-page">
+      <section class="mf-section mf-news-hero mf-news-viewport" id="news-hero">
+        <div class="mf-hero__sparkles" aria-hidden="true">
+          ${Array.from({ length: 10 }, () => "<span></span>").join("")}
+        </div>
+        <div class="mf-container mf-news-hero__grid">
+          <header class="mf-news-hero__content">
+            <p class="mf-eyebrow">Feira IT News</p>
+            <h1>Insight ringkas untuk keputusan teknologi yang lebih jernih.</h1>
+            <p class="mf-lead">${articles.length} artikel tersedia dari ${categories.length} kategori.</p>
+          </header>
         ${featured ? `
           <article class="mf-news-featured mf-card">
             <img src="${escapeHtml(featured.image)}" alt="" loading="lazy" width="960" height="540">
@@ -676,6 +682,15 @@ function renderNews(_session, newsData = {}) {
             </div>
           </article>
         ` : ""}
+        </div>
+      </section>
+      <section class="mf-section mf-news-stream mf-news-viewport" id="news-stream">
+        <div class="mf-container mf-news-stream__inner">
+          ${renderSectionHeader({
+            eyebrow: "News Stream",
+            title: "Kabar kabar IT terbaru",
+            description: "Kurasi singkat seputar jaringan, aplikasi, keamanan, operasional, dan transformasi digital.",
+          })}
         <form class="mf-catalog-tools mf-card" data-news-filter>
           <label class="mf-field">Cari artikel
             <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website...">
@@ -697,11 +712,19 @@ function renderNews(_session, newsData = {}) {
           <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
           <a class="mf-button mf-button--secondary" href="/news">Reset</a>
         </form>
-        ${articles.length ? `<div class="mf-grid mf-grid--news">${articles.map(renderNewsCard).join("")}</div>` : `
+        ${articles.length ? `
+          <div class="mf-news-marquee" aria-label="Daftar artikel IT News">
+            <div class="mf-news-marquee__track">
+              ${marqueeCards}
+            </div>
+          </div>
+          <div class="mf-grid mf-grid--news mf-news-grid-fallback">${articleCards}</div>
+        ` : `
           <div class="mf-empty-state mf-card"><h3>Artikel belum ditemukan.</h3><p>Coba kata kunci atau kategori lain.</p></div>
         `}
       </div>
     </section>
+    </div>
   `;
 }
 

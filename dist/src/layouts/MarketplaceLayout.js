@@ -27,7 +27,15 @@ export function renderMarketplaceLayout({ content, activeRoute, session, unreadC
             { name: "Featured", href: "#featured" },
           ],
         }
-      : null,
+      : activeRoute === "news"
+        ? {
+            label: "Section",
+            items: [
+              { name: "Hero news", href: "#news-hero" },
+              { name: "News stream", href: "#news-stream" },
+            ],
+          }
+        : null,
     action: session
       ? {
           label: session.user.name,

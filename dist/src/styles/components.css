@@ -211,6 +211,178 @@
   min-width: 0;
 }
 
+.mf-news-page {
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(75, 150, 182, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 154, 58, 0.055) 1px, transparent 1px),
+    var(--mf-soft-cream);
+  background-size: 76px 76px;
+}
+
+.mf-news-viewport {
+  display: grid;
+  align-items: center;
+  min-height: calc(100svh - var(--mf-header-height));
+  padding-block: clamp(1rem, 2.4svh, 1.75rem);
+  scroll-margin-top: var(--mf-header-height);
+}
+
+.mf-news-viewport > .mf-container {
+  min-width: 0;
+}
+
+.mf-news-hero {
+  position: relative;
+  overflow: hidden;
+  color: var(--mf-white);
+  background:
+    linear-gradient(90deg, rgba(3, 17, 31, 0.9), rgba(5, 31, 49, 0.68) 46%, rgba(5, 49, 65, 0.18)),
+    linear-gradient(0deg, rgba(3, 17, 31, 0.24), rgba(3, 17, 31, 0.12)),
+    url("/assets/images/news-hero-bg.webp") center top / cover no-repeat,
+    #061827;
+}
+
+.mf-news-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 34%;
+  background: linear-gradient(180deg, transparent, rgba(255, 249, 239, 0.92));
+  pointer-events: none;
+}
+
+.mf-news-hero__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(1rem, 2.4vw, 2rem);
+  align-items: center;
+  min-height: 0;
+}
+
+.mf-news-hero__content {
+  display: grid;
+  max-width: 690px;
+  gap: 1rem;
+}
+
+.mf-news-hero h1 {
+  max-width: 12ch;
+  color: var(--mf-white);
+  font-size: clamp(2.35rem, 6.2vw, 5.25rem);
+  line-height: 0.96;
+}
+
+.mf-news-hero .mf-eyebrow {
+  color: #73d7ee;
+}
+
+.mf-news-hero .mf-lead {
+  max-width: 56ch;
+  color: rgba(255, 252, 246, 0.84);
+}
+
+.mf-news-hero .mf-news-featured {
+  grid-template-columns: 1fr;
+  justify-self: end;
+  width: min(100%, 360px);
+  margin: 0;
+  gap: 0;
+  border-color: rgba(115, 215, 238, 0.22);
+  border-radius: var(--mf-radius-lg);
+  background:
+    linear-gradient(145deg, rgba(255, 252, 246, 0.9), rgba(220, 239, 247, 0.78)),
+    radial-gradient(circle at 100% 0%, rgba(201, 154, 58, 0.22), transparent 12rem);
+  box-shadow: 0 24px 70px rgba(0, 14, 28, 0.32);
+  backdrop-filter: blur(18px);
+}
+
+.mf-news-hero .mf-news-featured img {
+  aspect-ratio: 16 / 7;
+  height: clamp(130px, 22svh, 190px);
+  object-fit: cover;
+}
+
+.mf-news-hero .mf-news-featured > div {
+  gap: 0.62rem;
+  padding: clamp(0.85rem, 1.8vw, 1.1rem);
+}
+
+.mf-news-hero .mf-news-featured h2 {
+  max-width: 11ch;
+  font-size: clamp(1.32rem, 2.2vw, 1.8rem);
+  line-height: 1.02;
+}
+
+.mf-news-hero .mf-news-featured p {
+  display: none;
+}
+
+.mf-news-hero .mf-news-featured .mf-button {
+  width: fit-content;
+  min-height: 42px;
+  padding: 0.58rem 0.95rem;
+}
+
+.mf-news-stream {
+  position: relative;
+}
+
+.mf-news-stream__inner {
+  display: grid;
+  align-content: center;
+  gap: clamp(0.85rem, 2svh, 1.35rem);
+}
+
+.mf-news-marquee {
+  overflow: hidden;
+  width: 100%;
+  padding-block: 0.25rem 0.75rem;
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+.mf-news-marquee__track {
+  display: flex;
+  width: max-content;
+  gap: clamp(0.9rem, 1.8vw, 1.25rem);
+  animation: mf-news-card-slide 58s linear infinite;
+  will-change: transform;
+}
+
+.mf-news-marquee:hover .mf-news-marquee__track,
+.mf-news-marquee:focus-within .mf-news-marquee__track {
+  animation-play-state: paused;
+}
+
+.mf-news-marquee .mf-news-card {
+  width: clamp(280px, 28vw, 390px);
+  flex: 0 0 auto;
+}
+
+.mf-news-marquee .mf-news-card > img {
+  aspect-ratio: 16 / 8.9;
+}
+
+.mf-news-marquee .mf-news-card__body {
+  gap: 0.82rem;
+  padding: 0.95rem;
+}
+
+.mf-news-grid-fallback {
+  display: none;
+}
+
+@keyframes mf-news-card-slide {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(calc(-50% - 0.625rem), 0, 0);
+  }
+}
+
 .mf-hero__grid {
   position: relative;
   z-index: 1;
@@ -849,7 +1021,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mf-hero__sparkles span,
-  .mf-hero__metrics-track {
+  .mf-hero__metrics-track,
+  .mf-news-marquee__track {
     animation: none;
   }
 
