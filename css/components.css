@@ -372,7 +372,7 @@
   opacity: 0.5;
 }
 
-.card > * {
+.card>* {
   position: relative;
   z-index: 1;
 }
@@ -414,13 +414,11 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 252, 246, 0.94) 0%,
-    rgba(255, 252, 246, 0.76) 32%,
-    rgba(255, 252, 246, 0.12) 58%,
-    transparent 74%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 252, 246, 0.94) 0%,
+      rgba(255, 252, 246, 0.76) 32%,
+      rgba(255, 252, 246, 0.12) 58%,
+      transparent 74%);
 }
 
 .hero-section::after {
@@ -619,15 +617,13 @@
   opacity: 0;
   filter: drop-shadow(0 0 5px rgba(255, 228, 145, 0.86));
   background:
-    linear-gradient(
-      90deg,
+    linear-gradient(90deg,
       transparent 0 5%,
       rgba(255, 250, 222, 0.94) 5% 21%,
       transparent 21% 27%,
       rgba(232, 169, 58, 0.9) 27% 58%,
       transparent 58% 65%,
-      rgba(255, 249, 214, 0.92) 65% 100%
-    );
+      rgba(255, 249, 214, 0.92) 65% 100%);
   clip-path: polygon(0 38%, 22% 22%, 39% 64%, 58% 28%, 75% 72%, 100% 42%, 100% 67%, 75% 95%, 58% 52%, 39% 88%, 22% 48%, 0 68%);
   animation: hero-bolt-strike 8.4s var(--bolt-delay) steps(1, end) infinite;
 }
@@ -678,6 +674,7 @@
 }
 
 @keyframes hero-spark-flash {
+
   0%,
   76%,
   100% {
@@ -712,6 +709,7 @@
 }
 
 @keyframes hero-bolt-strike {
+
   0%,
   68%,
   100% {
@@ -740,6 +738,7 @@
 }
 
 @keyframes hero-energy-pulse {
+
   0%,
   58%,
   100% {
@@ -1302,7 +1301,7 @@
   box-shadow: 0 24px 58px rgba(75, 46, 22, 0.12);
 }
 
-.about-card > * {
+.about-card>* {
   position: relative;
   z-index: 1;
 }
@@ -1334,7 +1333,7 @@
   line-height: 1.25;
 }
 
-.about-card > p {
+.about-card>p {
   grid-column: 1;
   color: rgba(32, 33, 36, 0.72);
   font-size: 0.94rem;
@@ -1476,12 +1475,12 @@
   transform: rotate(-14deg);
 }
 
-.service-card > * {
+.service-card>* {
   position: relative;
   z-index: 1;
 }
 
-.service-card > :not(.service-silhouette) {
+.service-card> :not(.service-silhouette) {
   max-width: 62%;
 }
 
@@ -1533,7 +1532,7 @@
 }
 
 .service-card p:not(.service-kicker),
-.detail-card > p,
+.detail-card>p,
 .highlight-card p,
 .reason-list p,
 .process-step p,
@@ -1551,7 +1550,7 @@
     transparent;
 }
 
-.service-detail-section > .container {
+.service-detail-section>.container {
   position: relative;
   z-index: 1;
 }
@@ -1607,11 +1606,8 @@
 
   to {
     transform:
-      translate(
-        calc(-50% + var(--orb-drift-x)),
-        calc(-50% + var(--orb-drift-y))
-      )
-      scale(calc(var(--orb-scale) + 0.08));
+      translate(calc(-50% + var(--orb-drift-x)),
+        calc(-50% + var(--orb-drift-y))) scale(calc(var(--orb-scale) + 0.08));
   }
 }
 
@@ -1827,7 +1823,7 @@
   gap: var(--space-md);
 }
 
-.why-intro > p:not(.eyebrow) {
+.why-intro>p:not(.eyebrow) {
   max-width: 58ch;
   color: rgba(32, 33, 36, 0.74);
 }
@@ -1963,7 +1959,7 @@
   font-size: clamp(1.08rem, 3vw, 1.25rem);
 }
 
-.reason-copy > p:last-child {
+.reason-copy>p:last-child {
   font-size: 0.92rem;
   line-height: 1.62;
 }
@@ -2068,7 +2064,7 @@
   width: min(48vw, 520px);
 }
 
-.process-step > span {
+.process-step>span {
   display: grid;
   width: 42px;
   aspect-ratio: 1;
@@ -2173,7 +2169,7 @@
   box-shadow: inset 0 0 36px rgba(240, 179, 67, 0.08);
 }
 
-.process-section .process-step > span {
+.process-section .process-step>span {
   border: 1px solid rgba(255, 217, 141, 0.54);
   color: #241507;
   background: linear-gradient(135deg, #ffe8ae, #d89d32);
@@ -2212,7 +2208,7 @@
     radial-gradient(circle at 8% 78%, rgba(201, 154, 58, 0.14), transparent 24%);
 }
 
-.proof-section > .container {
+.proof-section>.container {
   position: relative;
   z-index: 2;
 }
@@ -2238,7 +2234,7 @@
   max-width: 30ch;
 }
 
-.proof-header > p:last-child {
+.proof-header>p:last-child {
   max-width: 66ch;
 }
 
@@ -2297,7 +2293,7 @@
   transition: border-color 180ms ease, color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
-.proof-tab > span {
+.proof-tab>span {
   position: absolute;
   top: 0.78rem;
   left: 0.82rem;
@@ -2631,7 +2627,7 @@
   margin: 0;
 }
 
-.proof-facts > div {
+.proof-facts>div {
   display: grid;
   gap: 0.08rem;
   border-left: 2px solid rgba(201, 154, 58, 0.42);
@@ -2719,7 +2715,7 @@
   background: linear-gradient(135deg, #a67420, #315e78);
 }
 
-.client-note figcaption > span:last-child {
+.client-note figcaption>span:last-child {
   display: grid;
   line-height: 1.3;
 }
@@ -2907,7 +2903,7 @@
   font-size: clamp(1.3rem, 2.3vw, 1.7rem);
 }
 
-.project-film-copy > p:not(.proof-kicker) {
+.project-film-copy>p:not(.proof-kicker) {
   color: rgba(232, 244, 249, 0.72);
   font-size: 0.8rem;
 }
@@ -3121,7 +3117,7 @@
   content: none;
 }
 
-.cta-section > .container {
+.cta-section>.container {
   position: relative;
   z-index: 1;
 }
@@ -3151,7 +3147,7 @@
   box-shadow: 0 0 0 100vmax rgba(244, 250, 253, 0.9);
 }
 
-.cta-panel > * {
+.cta-panel>* {
   position: relative;
   z-index: 1;
 }
@@ -3359,7 +3355,7 @@
   font-size: clamp(1.8rem, 7vw, 2.6rem);
 }
 
-.owner-access-card > p:not(.eyebrow, .owner-access-error) {
+.owner-access-card>p:not(.eyebrow, .owner-access-error) {
   color: rgba(32, 33, 36, 0.7);
 }
 
@@ -3428,6 +3424,7 @@
 }
 
 @keyframes soft-float {
+
   0%,
   100% {
     transform: translateY(0);
@@ -3436,4 +3433,399 @@
   50% {
     transform: translateY(-8px);
   }
+}
+
+.hero-cinematic-metrics {
+  display: grid;
+  width: 100%;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.hero-metric {
+  border: 1px solid rgba(201, 154, 58, 0.22);
+  border-radius: 1.15rem;
+  padding: 0.85rem 1rem;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 246, 0.82), rgba(220, 239, 247, 0.32)),
+    rgba(255, 252, 246, 0.54);
+  box-shadow: 0 16px 38px rgba(75, 46, 22, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.hero-metric strong {
+  display: block;
+  color: var(--deep-gold);
+  font-family: var(--font-heading);
+  font-size: clamp(1.55rem, 5vw, 2.2rem);
+  line-height: 1;
+}
+
+.hero-metric span {
+  display: block;
+  margin-top: 0.25rem;
+  color: rgba(32, 33, 36, 0.72);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.cinematic-visual {
+  display: none;
+}
+
+.cinematic-device {
+  position: relative;
+  min-height: 420px;
+  border: 1px solid rgba(255, 252, 246, 0.62);
+  border-radius: 2rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 72% 18%, rgba(255, 231, 164, 0.5), transparent 26%),
+    radial-gradient(circle at 18% 78%, rgba(105, 181, 213, 0.38), transparent 32%),
+    linear-gradient(145deg, rgba(21, 44, 61, 0.94), rgba(7, 18, 32, 0.92));
+  box-shadow:
+    0 34px 90px rgba(31, 68, 96, 0.28),
+    0 0 90px rgba(201, 154, 58, 0.18),
+    inset 0 1px 0 rgba(255, 252, 246, 0.32);
+  --cinematic-scroll-y: 0px;
+  --cinematic-scroll-rotate-y: -8deg;
+  --cinematic-scroll-rotate-x: 4deg;
+  transform:
+    perspective(1000px) rotateY(var(--cinematic-scroll-rotate-y)) rotateX(var(--cinematic-scroll-rotate-x)) translateY(var(--cinematic-scroll-y));
+  animation: cinematic-device-float 8s ease-in-out infinite;
+}
+
+.cinematic-device::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 86%);
+}
+
+.cinematic-device::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  pointer-events: none;
+  background: linear-gradient(115deg,
+      transparent 34%,
+      rgba(255, 255, 255, 0.18) 48%,
+      transparent 62%);
+  transform: translateX(-28%);
+  animation: cinematic-light-sweep 7s ease-in-out infinite;
+}
+
+.cinematic-device-topbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 0.45rem;
+  padding: 1rem;
+}
+
+.cinematic-device-topbar span {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 252, 246, 0.72);
+  box-shadow: 0 0 16px rgba(255, 231, 164, 0.3);
+}
+
+.cinematic-dashboard {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 1rem;
+  margin: 1rem;
+  border: 1px solid rgba(255, 252, 246, 0.18);
+  border-radius: 1.35rem;
+  padding: 1.1rem;
+  color: var(--white-soft);
+  background: rgba(255, 252, 246, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.cinematic-dashboard-header small {
+  display: block;
+  color: rgba(255, 231, 164, 0.86);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cinematic-dashboard-header strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1.04;
+}
+
+.cinematic-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.cinematic-dashboard-grid span {
+  min-height: 92px;
+  border: 1px solid rgba(255, 252, 246, 0.14);
+  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, rgba(255, 231, 164, 0.18), transparent),
+    rgba(255, 252, 246, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 246, 0.16);
+}
+
+.cinematic-signal {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cinematic-signal i {
+  display: block;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(201, 154, 58, 0.95), rgba(191, 221, 235, 0.76), transparent);
+  transform-origin: left;
+  animation: cinematic-signal-flow 3.8s ease-in-out infinite;
+}
+
+.cinematic-signal i:nth-child(2) {
+  width: 78%;
+  animation-delay: -1.2s;
+}
+
+.cinematic-signal i:nth-child(3) {
+  width: 58%;
+  animation-delay: -2.1s;
+}
+
+.cinematic-orbit {
+  position: absolute;
+  border: 1px solid rgba(201, 154, 58, 0.24);
+  border-radius: 999px;
+  pointer-events: none;
+  box-shadow: 0 0 42px rgba(191, 221, 235, 0.22);
+}
+
+.cinematic-orbit-one {
+  inset: 8% -4% auto auto;
+  width: 180px;
+  aspect-ratio: 1;
+  animation: cinematic-orbit-drift 10s ease-in-out infinite;
+}
+
+.cinematic-orbit-two {
+  right: 18%;
+  bottom: -4%;
+  width: 240px;
+  aspect-ratio: 1;
+  animation: cinematic-orbit-drift 12s ease-in-out infinite reverse;
+}
+
+.cinematic-orbit-three {
+  top: 42%;
+  left: -5%;
+  width: 120px;
+  aspect-ratio: 1;
+  animation: cinematic-orbit-drift 9s ease-in-out infinite;
+}
+
+@keyframes cinematic-device-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -14px;
+  }
+}
+
+@keyframes cinematic-light-sweep {
+
+  0%,
+  52%,
+  100% {
+    transform: translateX(-42%);
+    opacity: 0;
+  }
+
+  64% {
+    transform: translateX(18%);
+    opacity: 1;
+  }
+
+  76% {
+    transform: translateX(44%);
+    opacity: 0;
+  }
+}
+
+@keyframes cinematic-signal-flow {
+
+  0%,
+  100% {
+    transform: scaleX(0.42);
+    opacity: 0.42;
+  }
+
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cinematic-orbit-drift {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(10px, -14px, 0) rotate(8deg);
+  }
+}
+
+@media (min-width: 900px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.8fr);
+  }
+
+  .cinematic-visual {
+    position: relative;
+    display: block;
+    min-height: 460px;
+  }
+
+  .hero-cinematic-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 620px;
+  }
+}
+
+/* Cinematic dashboard content labels */
+.cinematic-dashboard-grid span {
+  display: grid;
+  align-content: end;
+  gap: 0.25rem;
+  padding: 0.85rem;
+}
+
+.cinematic-dashboard-grid small {
+  color: rgba(255, 231, 164, 0.78);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.cinematic-dashboard-grid strong {
+  color: rgba(255, 252, 246, 0.92);
+  font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+  line-height: 1.1;
+}
+
+/* =========================================
+   Cinematic Widget Boundary Fix
+   Orbit/glow tetap hidup, tapi tidak keluar widget
+========================================= */
+
+.cinematic-device {
+  overflow: hidden !important;
+  isolation: isolate;
+}
+
+.cinematic-device-topbar,
+.cinematic-dashboard {
+  position: relative;
+  z-index: 3;
+}
+
+.cinematic-orbit {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.cinematic-orbit-one {
+  top: -8%;
+  right: -6%;
+}
+
+.cinematic-orbit-two {
+  right: 8%;
+  bottom: -12%;
+}
+
+.cinematic-orbit-three {
+  top: 42%;
+  left: -10%;
+}
+
+/* =========================================
+   Cinematic Widget Close Button
+========================================= */
+
+.cinematic-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 10;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(255, 252, 246, 0.28);
+  border-radius: 999px;
+  color: rgba(255, 252, 246, 0.92);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent),
+    rgba(7, 18, 32, 0.58);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.cinematic-close:hover {
+  transform: scale(1.06);
+  border-color: rgba(255, 231, 164, 0.58);
+  background:
+    linear-gradient(135deg, rgba(255, 231, 164, 0.24), transparent),
+    rgba(7, 18, 32, 0.72);
+}
+
+.cinematic-close:focus-visible {
+  outline: 3px solid rgba(201, 154, 58, 0.55);
+  outline-offset: 3px;
+}
+
+.cinematic-visual.is-cinematic-dismissed {
+  opacity: 0 !important;
+  transform: translateY(-24px) scale(0.96) !important;
+  pointer-events: none;
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease;
 }

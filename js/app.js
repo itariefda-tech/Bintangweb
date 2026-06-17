@@ -2,6 +2,7 @@ const menuToggle = document.querySelector("[data-menu-toggle]");
 const mobileMenu = document.querySelector("[data-mobile-menu]");
 const mobileLinks = document.querySelectorAll(".mobile-nav a, .mobile-menu .button");
 const siteHeader = document.querySelector("[data-site-header]");
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 const defaultPublicSettings = {
   processAudioAutoplay: true,
@@ -195,6 +196,87 @@ window.addEventListener("scroll", frameThrottle(updateHeaderState), {
   passive: true,
 });
 
+const cinematicVisual = document.querySelector(".cinematic-visual");
+const cinematicDevice = document.querySelector(".cinematic-device");
+
+function updateCinematicHeroParallax() {
+  if (!cinematicVisual || !cinematicDevice) return;
+  if (prefersReducedMotion.matches) return;
+  if (window.innerWidth < 900) return;
+
+  const rect = cinematicVisual.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || 1;
+  const progress = Math.min(
+    1,
+    Math.max(-1, (rect.top - viewportHeight / 2) / viewportHeight)
+  );
+
+  cinematicDevice.style.setProperty("--cinematic-scroll-y", `${progress * -18}px`);
+  cinematicDevice.style.setProperty("--cinematic-scroll-rotate-y", `${-8 + progress * 2}deg`);
+  cinematicDevice.style.setProperty("--cinematic-scroll-rotate-x", `${4 - progress * 1.5}deg`);
+}
+
+window.addEventListener("scroll", frameThrottle(updateCinematicHeroParallax), {
+  passive: true,
+});
+
+window.addEventListener("resize", frameThrottle(updateCinematicHeroParallax), {
+  passive: true,
+});
+
+updateCinematicHeroParallax();
+
+function initCinematicWidgetEntrance() {
+  const cinematicWidget = document.querySelector(".cinematic-visual");
+  if (!cinematicWidget) return;
+
+  if (prefersReducedMotion.matches) {
+    cinematicWidget.classList.add("is-cinematic-visible");
+    return;
+  }
+
+  if (!("IntersectionObserver" in window)) {
+    cinematicWidget.classList.add("is-cinematic-visible");
+    return;
+  }
+
+  const cinematicEntranceObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        entry.target.classList.add("is-cinematic-visible");
+        observer.unobserve(entry.target);
+      });
+    },
+    {
+      threshold: 0.22,
+      rootMargin: "0px 0px -8% 0px",
+    }
+  );
+
+  cinematicEntranceObserver.observe(cinematicWidget);
+}
+
+initCinematicWidgetEntrance();
+
+function initCinematicWidgetClose() {
+  const cinematicWidget = document.querySelector(".cinematic-visual");
+  const cinematicCloseButton = document.querySelector("[data-cinematic-close]");
+
+  if (!cinematicWidget || !cinematicCloseButton) return;
+
+  cinematicCloseButton.addEventListener("click", () => {
+    cinematicWidget.classList.add("is-cinematic-dismissed");
+
+    window.setTimeout(() => {
+      cinematicWidget.hidden = true;
+    }, 340);
+  });
+}
+
+initCinematicWidgetClose();
+
 const viewportSections = document.querySelectorAll(
   ".why-section, .process-section"
 );
@@ -338,7 +420,6 @@ if (processAudio && settings.processAudioAutoplay) {
 }
 });
 
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const proofRooms = document.querySelectorAll("[data-proof-room]");
 
 proofRooms.forEach((proofRoom) => {

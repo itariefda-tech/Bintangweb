@@ -1921,3 +1921,254 @@
     border-bottom: 0;
   }
 }
+
+/* =========================================
+   FINAL FIX - Hero Desktop Balance
+   Fix metrics kepotong + cinematic tidak nutup konten
+   Taruh PALING BAWAH responsive.css
+========================================= */
+
+@media (min-width: 1024px) {
+  .hero-section {
+    height: auto !important;
+    min-height: calc(100svh - 83px) !important;
+    padding-top: clamp(3.5rem, 5svh, 5rem) !important;
+    padding-bottom: clamp(3.5rem, 5svh, 5.5rem) !important;
+    overflow: hidden;
+  }
+
+  .hero-section .hero-grid {
+    height: auto !important;
+    min-height: calc(100svh - 170px) !important;
+    grid-template-columns: minmax(420px, 0.84fr) minmax(430px, 0.9fr) !important;
+    align-items: center !important;
+    gap: clamp(1.5rem, 3vw, 3.5rem) !important;
+  }
+
+  .hero-section .hero-copy {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    max-width: 640px !important;
+    gap: clamp(0.65rem, 1.55svh, 1rem) !important;
+    z-index: 6;
+  }
+
+  .hero-section .hero-title {
+    max-width: 9.6ch !important;
+    font-size: clamp(3.35rem, min(6.3vw, 8.8svh), 5.8rem) !important;
+    line-height: 0.94 !important;
+  }
+
+  .hero-section .hero-subtitle {
+    max-width: 560px !important;
+    font-size: clamp(0.95rem, min(1.25vw, 1.9svh), 1.08rem) !important;
+    line-height: 1.65 !important;
+  }
+
+  .hero-section .trust-row {
+    gap: 0.55rem !important;
+  }
+
+  .hero-section .trust-row span {
+    padding: 0.34rem 0.62rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .hero-section .hero-cinematic-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    max-width: 560px !important;
+    gap: 0.65rem !important;
+    margin-top: 0.15rem !important;
+  }
+
+  .hero-section .hero-metric {
+    min-height: 76px;
+    padding: 0.72rem 0.85rem !important;
+  }
+
+  .hero-section .hero-metric strong {
+    font-size: clamp(1.45rem, 2.2vw, 1.9rem) !important;
+  }
+
+  .hero-section .hero-metric span {
+    font-size: 0.74rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .hero-section .cinematic-visual {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    align-self: center !important;
+    width: min(100%, 560px) !important;
+    min-height: 420px !important;
+    transform: translateY(-4px) !important;
+    z-index: 5;
+  }
+
+  .hero-section .cinematic-device {
+    width: min(100%, 540px) !important;
+    min-height: 390px !important;
+    max-width: 540px !important;
+    margin-inline: auto 0 !important;
+  }
+
+  .hero-section .cinematic-dashboard {
+    gap: 0.75rem !important;
+    margin: 0.85rem !important;
+    padding: 0.95rem !important;
+  }
+
+  .hero-section .cinematic-dashboard-grid {
+    gap: 0.65rem !important;
+  }
+
+  .hero-section .cinematic-dashboard-grid span {
+    min-height: 72px !important;
+  }
+}
+
+/* Final orbit containment override */
+@media (min-width: 1024px) {
+  .hero-section .cinematic-device {
+    overflow: hidden !important;
+    isolation: isolate;
+  }
+
+  .hero-section .cinematic-device .cinematic-orbit {
+    position: absolute !important;
+    z-index: 1 !important;
+    pointer-events: none;
+  }
+
+  .hero-section .cinematic-device .cinematic-orbit-one {
+    top: -8% !important;
+    right: -6% !important;
+  }
+
+  .hero-section .cinematic-device .cinematic-orbit-two {
+    right: 8% !important;
+    bottom: -12% !important;
+  }
+
+  .hero-section .cinematic-device .cinematic-orbit-three {
+    top: 42% !important;
+    left: -10% !important;
+  }
+
+  .hero-section .cinematic-dashboard,
+  .hero-section .cinematic-device-topbar {
+    position: relative !important;
+    z-index: 3 !important;
+  }
+}
+
+/* =========================================
+   Cinematic Widget Entrance Animation
+   Widget: fade in from top
+   Matrix: fade in from right
+========================================= */
+
+@media (min-width: 1024px) {
+  .cinematic-visual {
+    opacity: 0;
+    transform: translateY(-42px);
+    transition:
+      opacity 900ms ease,
+      transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .cinematic-visual.is-cinematic-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .cinematic-dashboard-header,
+  .cinematic-device-topbar {
+    opacity: 0;
+    transform: translateY(-16px);
+    transition:
+      opacity 720ms ease,
+      transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-device-topbar {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 180ms;
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-dashboard-header {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 260ms;
+  }
+
+  .cinematic-dashboard-grid span {
+    opacity: 0;
+    transform: translateX(42px);
+    transition:
+      opacity 720ms ease,
+      transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-dashboard-grid span {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-dashboard-grid span:nth-child(1) {
+    transition-delay: 360ms;
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-dashboard-grid span:nth-child(2) {
+    transition-delay: 460ms;
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-dashboard-grid span:nth-child(3) {
+    transition-delay: 560ms;
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-dashboard-grid span:nth-child(4) {
+    transition-delay: 660ms;
+  }
+
+  .cinematic-signal i {
+    opacity: 0;
+    transform: translateX(38px) scaleX(0.35);
+    transition:
+      opacity 700ms ease,
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-signal i {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-signal i:nth-child(1) {
+    transition-delay: 760ms;
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-signal i:nth-child(2) {
+    transition-delay: 840ms;
+  }
+
+  .cinematic-visual.is-cinematic-visible .cinematic-signal i:nth-child(3) {
+    transition-delay: 920ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-visual,
+  .cinematic-dashboard-header,
+  .cinematic-device-topbar,
+  .cinematic-dashboard-grid span,
+  .cinematic-signal i {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
