@@ -3483,7 +3483,7 @@
   background:
     radial-gradient(circle at 72% 18%, rgba(255, 231, 164, 0.5), transparent 26%),
     radial-gradient(circle at 18% 78%, rgba(105, 181, 213, 0.38), transparent 32%),
-    linear-gradient(145deg, rgba(21, 44, 61, 0.94), rgba(7, 18, 32, 0.92));
+    linear-gradient(145deg, rgba(21, 44, 61, 0.75), rgba(7, 18, 32, 0.75));
   box-shadow:
     0 34px 90px rgba(31, 68, 96, 0.28),
     0 0 90px rgba(201, 154, 58, 0.18),
@@ -3547,7 +3547,7 @@
   border-radius: 1.35rem;
   padding: 1.1rem;
   color: var(--white-soft);
-  background: rgba(255, 252, 246, 0.08);
+  background: linear-gradient(145deg, rgba(21, 44, 61, 0.75), rgba(7, 18, 32, 0.75));
   backdrop-filter: blur(18px);
 }
 
