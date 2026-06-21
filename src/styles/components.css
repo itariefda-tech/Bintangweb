@@ -912,7 +912,8 @@
 .mf-catalog-marquee {
   position: relative;
   overflow: hidden;
-  width: min(100%, 100vw);
+  width: 100%;
+  max-width: 100%;
   margin-top: 1rem;
   padding-block: 0.5rem 1.5rem;
   mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
@@ -990,7 +991,10 @@
 }
 
 .mf-featured-grid .mf-product-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
+  height: 100%;
 }
 
 .mf-featured-grid .mf-product-card__media {
@@ -998,6 +1002,8 @@
 }
 
 .mf-featured-grid .mf-product-card__body {
+  display: grid;
+  align-content: start;
   gap: 0.72rem;
   padding: clamp(0.85rem, 1.5vw, 1.05rem);
 }

@@ -189,8 +189,8 @@ function renderMarketplace(_session, catalog) {
     <section class="mf-section mf-catalog-section mf-marketplace-viewport" id="produk">
       <div class="mf-container">
         ${renderSectionHeader({
-          eyebrow: "Katalog awal",
-          title: "Catalogue product",
+          eyebrow: "Catalogue",
+          title: "Temukan produk yang sesuai",
           description: "Cari berdasarkan kebutuhan, pilih kategori, dan urutkan katalog dengan cepat.",
         })}
         <form class="mf-catalog-tools mf-card" data-catalog-filter>
@@ -237,7 +237,7 @@ function renderMarketplace(_session, catalog) {
       <div class="mf-container mf-featured-section__inner">
         ${renderSectionHeader({
           eyebrow: "Featured selection",
-          title: "Pilihan utama untuk kebutuhan operasional.",
+          title: "Pilihan utama untuk kebutuhan operasional",
           description: "Produk yang paling sering menjadi titik awal pengadaan perangkat, jaringan, dan keamanan bisnis.",
         })}
         ${featuredSelection.length ? `
