@@ -360,10 +360,12 @@
   }
 
   .desktop-nav {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: clamp(0.8rem, 1.5vw, 1.35rem);
+    overflow: hidden;
     border: 1px solid rgba(75, 150, 182, 0.2);
     border-right-color: rgba(201, 154, 58, 0.34);
     border-left-color: rgba(201, 154, 58, 0.34);
@@ -374,6 +376,38 @@
       rgba(248, 251, 252, 0.36);
     box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.16), 0 10px 26px rgba(31, 68, 96, 0.1);
     backdrop-filter: blur(10px);
+  }
+
+  .desktop-nav::before,
+  .desktop-nav::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .desktop-nav::before {
+    background:
+      linear-gradient(105deg,
+        transparent 0 34%,
+        rgba(255, 255, 255, 0.68) 43%,
+        rgba(255, 231, 164, 0.48) 49%,
+        rgba(191, 221, 235, 0.34) 55%,
+        transparent 66% 100%);
+    transform: translateX(-120%);
+    animation: desktop-nav-shimmer 7.5s ease-in-out infinite;
+  }
+
+  .desktop-nav::after {
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at 18% 50%, rgba(201, 154, 58, 0.2), transparent 24%),
+      radial-gradient(circle at 82% 50%, rgba(75, 150, 182, 0.18), transparent 26%);
+    opacity: 0.72;
+  }
+
+  .desktop-nav a {
+    z-index: 1;
   }
 
   .nav-cta {
@@ -2285,6 +2319,24 @@
   }
 }
 
+@keyframes desktop-nav-shimmer {
+  0%,
+  62%,
+  100% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+
+  74% {
+    opacity: 0.76;
+  }
+
+  88% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
 /* =========================================
    FINAL FIX - Hero Desktop Balance
    Fix metrics kepotong + cinematic tidak nutup konten
@@ -2539,6 +2591,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .desktop-nav::before,
+  .why-section::before,
+  .why-section::after,
+  .reason-card::before,
   .cinematic-visual,
   .cinematic-dashboard-header,
   .cinematic-device-topbar,
