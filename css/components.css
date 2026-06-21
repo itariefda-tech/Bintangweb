@@ -1970,8 +1970,9 @@
   border: 1px solid rgba(75, 46, 22, 0.12);
   border-radius: var(--radius-xl);
   padding: clamp(1rem, 3vw, 1.35rem);
-  background: rgba(42, 22, 8, 0.9);
+  background: rgba(42, 22, 8, 0.6);
   box-shadow: 0 22px 60px rgba(42, 22, 8, 0.16);
+  backdrop-filter: blur(14px);
 }
 
 .why-path-label {
@@ -1993,14 +1994,13 @@
 
 .why-path li {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.28rem 0.7rem;
   min-width: 0;
   padding: 0.65rem 0;
   color: var(--white-soft);
-  font-size: 0.82rem;
-  font-weight: 800;
 }
 
 .why-path li:not(:last-child)::after {
@@ -2014,9 +2014,26 @@
 }
 
 .why-path li span {
+  grid-row: 1 / span 2;
   color: var(--gold);
   font-size: 0.65rem;
+  font-weight: 900;
   letter-spacing: 0.08em;
+}
+
+.why-path li strong {
+  color: var(--white-soft);
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.why-path li p {
+  margin: 0;
+  color: rgba(255, 252, 246, 0.74);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.42;
 }
 
 .why-orbit {

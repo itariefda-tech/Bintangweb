@@ -3,7 +3,8 @@ const { spawn } = require("child_process");
 
 const port = process.env.PORT || "8000";
 const url = `http://localhost:${port}`;
-const server = spawn("python", ["app.py"], {
+const pythonCommand = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+const server = spawn(pythonCommand, ["app.py"], {
   env: process.env,
   stdio: "inherit",
 });
@@ -19,12 +20,16 @@ function openEdge() {
   browserOpened = true;
   clearInterval(healthCheck);
 
-  const edge = spawn(
-    "cmd",
-    ["/c", "start", "", `microsoft-edge:${url}`],
-    { detached: true, stdio: "ignore" },
-  );
-  edge.unref();
+  const opener =
+    process.platform === "darwin"
+      ? ["open", [url]]
+      : process.platform === "win32"
+        ? ["cmd", ["/c", "start", "", `microsoft-edge:${url}`]]
+        : ["xdg-open", [url]];
+
+  const browser = spawn(opener[0], opener[1], { detached: true, stdio: "ignore" });
+  browser.on("error", () => {});
+  browser.unref();
 }
 
 function checkServer() {
