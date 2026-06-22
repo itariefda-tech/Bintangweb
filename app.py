@@ -16,25 +16,31 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
-from marketplace_auth import (
+from src.modules.marketplace.backend.marketplace_auth import (
     AuthAccountStatusError,
     AuthStore,
     AuthValidationError,
     DuplicateEmailError,
 )
-from marketplace_admin import AdminStore, AdminValidationError
-from marketplace_catalog import CatalogStore, CatalogValidationError
-from marketplace_checkout import (
+from src.modules.marketplace.backend.marketplace_admin import (
+    AdminStore,
+    AdminValidationError,
+)
+from src.modules.marketplace.backend.marketplace_catalog import (
+    CatalogStore,
+    CatalogValidationError,
+)
+from src.modules.marketplace.backend.marketplace_checkout import (
     CartStore,
     CheckoutValidationError,
     StockConflictError,
 )
-from marketplace_consultation import (
+from src.modules.marketplace.backend.marketplace_consultation import (
     ConsultationStore,
     ConsultationValidationError,
 )
-from marketplace_news import NewsStore, NewsValidationError
-from marketplace_payment import (
+from src.modules.marketplace.backend.marketplace_news import NewsStore, NewsValidationError
+from src.modules.marketplace.backend.marketplace_payment import (
     MidtransClient,
     PaymentGatewayError,
     PaymentStore,

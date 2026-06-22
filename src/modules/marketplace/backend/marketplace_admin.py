@@ -6,8 +6,8 @@ import time
 import uuid
 from pathlib import Path
 
-from marketplace_auth import AuthStore
-from marketplace_catalog import CatalogStore
+from .marketplace_auth import AuthStore
+from .marketplace_catalog import CatalogStore
 
 
 PAYMENT_STATUS_VALUES = {"unpaid", "pending", "paid", "failed", "expired", "cancelled"}

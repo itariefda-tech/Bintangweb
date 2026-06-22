@@ -2,9 +2,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from marketplace_auth import AuthStore
-from marketplace_catalog import CatalogStore
-from marketplace_checkout import (
+from src.modules.marketplace.backend.marketplace_auth import AuthStore
+from src.modules.marketplace.backend.marketplace_catalog import CatalogStore
+from src.modules.marketplace.backend.marketplace_checkout import (
     CartStore,
     CheckoutValidationError,
     StockConflictError,

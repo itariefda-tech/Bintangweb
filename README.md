@@ -126,11 +126,10 @@ project/
 │   └── animation.js
 │
 ├── docs/
-│   ├── README.md
 │   ├── architecture.md
-│   ├── roadmap.md
-│   ├── uiuxguide.md
-│   └── erd.md
+│   ├── DESKTOP_VIEWPORT_LAYOUT_GUIDE.md
+│   ├── market_feira/
+│   └── production-qa.md
 ```
 
 ---

@@ -179,12 +179,12 @@
   .mf-news-stream .mf-catalog-tools select,
   .mf-news-stream .mf-catalog-tools .mf-button,
   .mf-news-stream .mf-catalog-tools .mf-featured-toggle {
-    min-height: 40px;
+    min-height: 42px;
     padding-block: 0.5rem;
   }
 
   .mf-news-stream .mf-news-catalog-tools {
-    padding-block: 0.5rem;
+    padding-block: 0.7rem;
   }
 
   .mf-catalog-section .mf-section-header {

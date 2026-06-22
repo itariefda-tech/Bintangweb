@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from marketplace_news import NewsStore, NewsValidationError
+from src.modules.marketplace.backend.marketplace_news import NewsStore, NewsValidationError
 
 
 class NewsStoreTests(unittest.TestCase):

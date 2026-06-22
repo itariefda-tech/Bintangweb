@@ -2,11 +2,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from marketplace_admin import AdminStore, AdminValidationError
-from marketplace_auth import AuthStore
-from marketplace_catalog import CatalogStore
-from marketplace_checkout import CartStore
-from marketplace_consultation import ConsultationStore
+from src.modules.marketplace.backend.marketplace_admin import (
+    AdminStore,
+    AdminValidationError,
+)
+from src.modules.marketplace.backend.marketplace_auth import AuthStore
+from src.modules.marketplace.backend.marketplace_catalog import CatalogStore
+from src.modules.marketplace.backend.marketplace_checkout import CartStore
+from src.modules.marketplace.backend.marketplace_consultation import ConsultationStore
 
 
 class AdminStoreTests(unittest.TestCase):

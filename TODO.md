@@ -33,8 +33,8 @@ Phase 10 dimulai dengan security hardening backend melalui admin audit log found
 
 ### Active Files
 - `app.py`
-- `marketplace_admin.py`
-- `marketplace_consultation.py`
+- `src/modules/marketplace/backend/marketplace_admin.py`
+- `src/modules/marketplace/backend/marketplace_consultation.py`
 - `src/app/marketplace-app.js`
 - `src/components/navigation/SiteHeader.js`
 - `src/layouts/MarketplaceLayout.js`
@@ -43,7 +43,7 @@ Phase 10 dimulai dengan security hardening backend melalui admin audit log found
 - `src/styles/responsive.css`
 - `tests/test_marketplace_admin.py`
 - `tests/test_marketplace_consultation.py`
-- `docs/MARKET_FEIRA_ROADMAP.md`
+- `docs/market_feira/MARKET_FEIRA_ROADMAP.md`
 
 ### Issues / Notes
 - Endpoint product owner lama masih tersedia sebagai compatibility path sementara.

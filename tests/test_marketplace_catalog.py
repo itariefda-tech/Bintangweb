@@ -2,7 +2,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from marketplace_catalog import CatalogStore, CatalogValidationError
+from src.modules.marketplace.backend.marketplace_catalog import (
+    CatalogStore,
+    CatalogValidationError,
+)
 
 
 class CatalogStoreTests(unittest.TestCase):

@@ -3,8 +3,11 @@ import unittest
 import base64
 from pathlib import Path
 
-from marketplace_auth import AuthStore
-from marketplace_consultation import ConsultationStore, ConsultationValidationError
+from src.modules.marketplace.backend.marketplace_auth import AuthStore
+from src.modules.marketplace.backend.marketplace_consultation import (
+    ConsultationStore,
+    ConsultationValidationError,
+)
 
 
 class ConsultationStoreTests(unittest.TestCase):

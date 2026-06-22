@@ -4,7 +4,7 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from marketplace_auth import (
+from src.modules.marketplace.backend.marketplace_auth import (
     AuthAccountStatusError,
     AuthStore,
     AuthValidationError,
