@@ -197,8 +197,17 @@
     padding-block: 0.35rem clamp(0.7rem, 1.8svh, 1.2rem);
   }
 
+  #news-stream .mf-news-marquee {
+    margin-top: clamp(0.35rem, 1.2svh, 0.75rem);
+    padding-block: 0.35rem clamp(0.7rem, 1.8svh, 1.2rem);
+  }
+
   .mf-catalog-track .mf-product-card {
     width: clamp(225px, 23vw, 310px);
+  }
+
+  #news-stream .mf-news-marquee .mf-news-card {
+    width: clamp(250px, 24vw, 330px);
   }
 
   .mf-catalog-track .mf-product-card__media {
@@ -260,6 +269,15 @@
     max-width: none;
   }
 
+  #news-stream .mf-news-stream__inner {
+    width: min(calc(100% - 2rem), 1500px);
+    max-width: none;
+    height: 100%;
+    align-content: center;
+    grid-template-rows: auto auto minmax(0, auto);
+    gap: clamp(0.8rem, 1.8svh, 1.25rem);
+  }
+
   .mf-catalog-section > .mf-container {
     height: 100%;
     grid-template-rows: auto auto minmax(0, 1fr);
@@ -319,12 +337,29 @@
     mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
   }
 
+  #news-stream .mf-news-marquee {
+    display: grid;
+    align-content: center;
+    min-height: 0;
+    margin-top: 0;
+    padding-block: clamp(0.55rem, 1.5svh, 1rem);
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  }
+
   .mf-catalog-track {
+    gap: clamp(1rem, 1.4vw, 1.35rem);
+  }
+
+  #news-stream .mf-news-marquee__track {
     gap: clamp(1rem, 1.4vw, 1.35rem);
   }
 
   .mf-catalog-track .mf-product-card {
     width: clamp(280px, 23.5vw, 360px);
+  }
+
+  #news-stream .mf-news-marquee .mf-news-card {
+    width: clamp(300px, 24vw, 380px);
   }
 
   .mf-catalog-track .mf-product-card__media {
@@ -618,12 +653,6 @@
 
   .mf-news-marquee {
     padding-block: 0.15rem 0.35rem;
-  }
-
-  #news-stream .mf-news-marquee .mf-news-card {
-    grid-template-rows: minmax(0, clamp(92px, 15svh, 132px)) minmax(0, 1fr);
-    height: clamp(224px, calc(100svh - var(--mf-header-height) - 218px), 320px);
-    max-height: min(45svh, 320px);
   }
 
   .mf-footer {
@@ -924,10 +953,7 @@
   }
 
   #news-stream .mf-news-marquee .mf-news-card {
-    grid-template-rows: minmax(0, clamp(104px, 20svh, 140px)) minmax(0, 1fr);
     width: min(82vw, 320px);
-    height: clamp(242px, 47svh, 334px);
-    max-height: 47svh;
   }
 
   .mf-featured-grid {
@@ -1003,9 +1029,31 @@
     min-height: 38px;
     padding-block: 0.42rem;
   }
+
+  .mf-section-filter-row .mf-filter-panel {
+    width: min(100%, 980px);
+    margin-bottom: 0;
+    justify-self: end;
+  }
 }
 
 @media (max-width: 899.98px) {
+  .mf-section-filter-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0.58rem;
+  }
+
+  .mf-section-filter-row .mf-section-header {
+    justify-content: flex-start;
+  }
+
+  .mf-section-filter-row .mf-filter-panel {
+    width: 100%;
+    margin-bottom: 0;
+    justify-self: stretch;
+  }
+
   .mf-filter-panel,
   .mf-news-stream .mf-filter-panel {
     --filter-field-height: 48px;

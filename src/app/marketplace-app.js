@@ -191,35 +191,37 @@ function renderMarketplace(_session, catalog) {
     </section>
     <section class="mf-section mf-catalog-section mf-marketplace-viewport" id="produk">
       <div class="mf-container">
-        <header class="mf-section-header mf-section-header--label-only">
-          <p class="mf-eyebrow">Catalogue</p>
-        </header>
-        <form class="mf-filter-panel mf-filter-panel--marketplace mf-card" data-catalog-filter>
-          <div class="mf-filter-panel__controls">
-            <label class="mf-field mf-field--search">
-              <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Laptop, network, CCTV..." aria-label="Cari produk">
-            </label>
-            <label class="mf-field mf-field--select">
-              <select name="category" aria-label="Kategori">
-                <option value="">Semua kategori</option>
-                ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.productCount})</option>`).join("")}
-              </select>
-            </label>
-            <label class="mf-field mf-field--select">
-              <select name="sort" aria-label="Urutkan">
-                <option value="featured"${filters.sort === "featured" ? " selected" : ""}>Featured</option>
-                <option value="newest"${filters.sort === "newest" ? " selected" : ""}>Terbaru</option>
-                <option value="price_asc"${filters.sort === "price_asc" ? " selected" : ""}>Harga terendah</option>
-                <option value="price_desc"${filters.sort === "price_desc" ? " selected" : ""}>Harga tertinggi</option>
-                <option value="name"${filters.sort === "name" ? " selected" : ""}>Nama A-Z</option>
-              </select>
-            </label>
-            <div class="mf-filter-panel__actions">
-              <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
-              <a class="mf-button mf-button--secondary" href="/marketplace#produk">Reset</a>
+        <div class="mf-section-filter-row">
+          <header class="mf-section-header mf-section-header--label-only">
+            <p class="mf-eyebrow">Catalogue</p>
+          </header>
+          <form class="mf-filter-panel mf-filter-panel--marketplace mf-card" data-catalog-filter>
+            <div class="mf-filter-panel__controls">
+              <label class="mf-field mf-field--search">
+                <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Laptop, network, CCTV..." aria-label="Cari produk">
+              </label>
+              <label class="mf-field mf-field--select">
+                <select name="category" aria-label="Kategori">
+                  <option value="">Semua kategori</option>
+                  ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.productCount})</option>`).join("")}
+                </select>
+              </label>
+              <label class="mf-field mf-field--select">
+                <select name="sort" aria-label="Urutkan">
+                  <option value="featured"${filters.sort === "featured" ? " selected" : ""}>Featured</option>
+                  <option value="newest"${filters.sort === "newest" ? " selected" : ""}>Terbaru</option>
+                  <option value="price_asc"${filters.sort === "price_asc" ? " selected" : ""}>Harga terendah</option>
+                  <option value="price_desc"${filters.sort === "price_desc" ? " selected" : ""}>Harga tertinggi</option>
+                  <option value="name"${filters.sort === "name" ? " selected" : ""}>Nama A-Z</option>
+                </select>
+              </label>
+              <div class="mf-filter-panel__actions">
+                <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
+                <a class="mf-button mf-button--secondary" href="/marketplace#produk">Reset</a>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
         ${products.length ? `
           <div class="mf-catalog-marquee" aria-label="Catalogue produk berjalan otomatis">
             <div class="mf-catalog-track">
@@ -687,33 +689,35 @@ function renderNews(_session, newsData = {}) {
       <section class="mf-section mf-news-stream mf-news-viewport" id="news-stream">
         <span class="mf-section-anchor" aria-hidden="true"></span>
         <div class="mf-container mf-news-stream__inner">
-        <header class="mf-section-header mf-section-header--label-only">
-          <p class="mf-eyebrow">IT News</p>
-        </header>
-        <form class="mf-filter-panel mf-filter-panel--news mf-card" data-news-filter>
-          <div class="mf-filter-panel__controls">
-            <label class="mf-field mf-field--search">
-              <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website..." aria-label="Cari artikel">
-            </label>
-            <label class="mf-field mf-field--select">
-              <select name="category" aria-label="Kategori">
-                <option value="">Semua kategori</option>
-                ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.articleCount})</option>`).join("")}
-              </select>
-            </label>
-            <label class="mf-field mf-field--select">
-              <select name="spotlight" aria-label="Filter artikel">
-                <option value=""${!filters.spotlight ? " selected" : ""}>Semua artikel</option>
-                <option value="featured"${filters.spotlight === "featured" ? " selected" : ""}>Featured</option>
-                <option value="trending"${filters.spotlight === "trending" ? " selected" : ""}>Trending</option>
-              </select>
-            </label>
-            <div class="mf-filter-panel__actions">
-              <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
-              <a class="mf-button mf-button--secondary" href="/news">Reset</a>
+        <div class="mf-section-filter-row">
+          <header class="mf-section-header mf-section-header--label-only">
+            <p class="mf-eyebrow">IT News</p>
+          </header>
+          <form class="mf-filter-panel mf-filter-panel--news mf-card" data-news-filter>
+            <div class="mf-filter-panel__controls">
+              <label class="mf-field mf-field--search">
+                <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website..." aria-label="Cari artikel">
+              </label>
+              <label class="mf-field mf-field--select">
+                <select name="category" aria-label="Kategori">
+                  <option value="">Semua kategori</option>
+                  ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.articleCount})</option>`).join("")}
+                </select>
+              </label>
+              <label class="mf-field mf-field--select">
+                <select name="spotlight" aria-label="Filter artikel">
+                  <option value=""${!filters.spotlight ? " selected" : ""}>Semua artikel</option>
+                  <option value="featured"${filters.spotlight === "featured" ? " selected" : ""}>Featured</option>
+                  <option value="trending"${filters.spotlight === "trending" ? " selected" : ""}>Trending</option>
+                </select>
+              </label>
+              <div class="mf-filter-panel__actions">
+                <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
+                <a class="mf-button mf-button--secondary" href="/news">Reset</a>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
         ${articles.length ? `
           <div class="mf-news-marquee" aria-label="Daftar artikel IT News">
             <div class="mf-news-marquee__track">
