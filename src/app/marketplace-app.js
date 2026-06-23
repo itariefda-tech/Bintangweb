@@ -107,11 +107,14 @@ function currentCatalogFilters() {
 
 function currentNewsFilters() {
   const query = new URLSearchParams(window.location.search);
+  const featured = query.get("featured") === "1";
+  const trending = query.get("trending") === "1";
   return {
     search: query.get("search") || "",
     category: query.get("category") || "",
-    featured: query.get("featured") === "1",
-    trending: query.get("trending") === "1",
+    featured,
+    trending,
+    spotlight: featured ? "featured" : trending ? "trending" : "",
   };
 }
 
@@ -188,8 +191,11 @@ function renderMarketplace(_session, catalog) {
     </section>
     <section class="mf-section mf-catalog-section mf-marketplace-viewport" id="produk">
       <div class="mf-container">
-        <form class="mf-catalog-tools mf-catalog-tools--compact mf-card" data-catalog-filter>
-          <div class="mf-catalog-tools__row">
+        <header class="mf-section-header mf-section-header--label-only">
+          <p class="mf-eyebrow">Catalogue</p>
+        </header>
+        <form class="mf-filter-panel mf-filter-panel--marketplace mf-card" data-catalog-filter>
+          <div class="mf-filter-panel__controls">
             <label class="mf-field mf-field--search">
               <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Laptop, network, CCTV..." aria-label="Cari produk">
             </label>
@@ -208,16 +214,10 @@ function renderMarketplace(_session, catalog) {
                 <option value="name"${filters.sort === "name" ? " selected" : ""}>Nama A-Z</option>
               </select>
             </label>
-            <div class="mf-catalog-tools__actions">
+            <div class="mf-filter-panel__actions">
               <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
               <a class="mf-button mf-button--secondary" href="/marketplace#produk">Reset</a>
             </div>
-          </div>
-          <div class="mf-catalog-tools__footer">
-            <label class="mf-featured-toggle">
-              <input type="checkbox" name="featured" value="1"${filters.featured ? " checked" : ""}>
-              Featured saja
-            </label>
           </div>
         </form>
         ${products.length ? `
@@ -236,11 +236,9 @@ function renderMarketplace(_session, catalog) {
     </section>
     <section class="mf-section mf-featured-section mf-marketplace-viewport" id="featured">
       <div class="mf-container mf-featured-section__inner">
-        ${renderSectionHeader({
-          eyebrow: "Featured selection",
-          title: "Pilihan utama untuk kebutuhan operasional",
-          description: "Produk yang paling sering menjadi titik awal pengadaan perangkat, jaringan, dan keamanan bisnis.",
-        })}
+        <header class="mf-section-header mf-section-header--label-only">
+          <p class="mf-eyebrow">Featured selection</p>
+        </header>
         ${featuredSelection.length ? `
           <div class="mf-featured-grid">
             ${featuredSelection.map((product, index) => renderProductCard(product, { number: index + 1 })).join("")}
@@ -689,8 +687,11 @@ function renderNews(_session, newsData = {}) {
       <section class="mf-section mf-news-stream mf-news-viewport" id="news-stream">
         <span class="mf-section-anchor" aria-hidden="true"></span>
         <div class="mf-container mf-news-stream__inner">
-        <form class="mf-catalog-tools mf-catalog-tools--compact mf-news-catalog-tools mf-card" data-news-filter>
-          <div class="mf-catalog-tools__row">
+        <header class="mf-section-header mf-section-header--label-only">
+          <p class="mf-eyebrow">IT News</p>
+        </header>
+        <form class="mf-filter-panel mf-filter-panel--news mf-card" data-news-filter>
+          <div class="mf-filter-panel__controls">
             <label class="mf-field mf-field--search">
               <input type="search" name="search" value="${escapeHtml(filters.search)}" placeholder="Network, CCTV, website..." aria-label="Cari artikel">
             </label>
@@ -700,20 +701,17 @@ function renderNews(_session, newsData = {}) {
                 ${categories.map((category) => `<option value="${escapeHtml(category.slug)}"${filters.category === category.slug ? " selected" : ""}>${escapeHtml(category.name)} (${category.articleCount})</option>`).join("")}
               </select>
             </label>
-            <div class="mf-catalog-tools__actions">
+            <label class="mf-field mf-field--select">
+              <select name="spotlight" aria-label="Filter artikel">
+                <option value=""${!filters.spotlight ? " selected" : ""}>Semua artikel</option>
+                <option value="featured"${filters.spotlight === "featured" ? " selected" : ""}>Featured</option>
+                <option value="trending"${filters.spotlight === "trending" ? " selected" : ""}>Trending</option>
+              </select>
+            </label>
+            <div class="mf-filter-panel__actions">
               <button class="mf-button mf-button--primary" type="submit">Terapkan</button>
               <a class="mf-button mf-button--secondary" href="/news">Reset</a>
             </div>
-          </div>
-          <div class="mf-catalog-tools__footer">
-            <label class="mf-featured-toggle">
-              <input type="checkbox" name="featured" value="1"${filters.featured ? " checked" : ""}>
-              Featured
-            </label>
-            <label class="mf-featured-toggle">
-              <input type="checkbox" name="trending" value="1"${filters.trending ? " checked" : ""}>
-              Trending
-            </label>
           </div>
         </form>
         ${articles.length ? `
@@ -1540,10 +1538,11 @@ function bindNewsFilter() {
     const query = new URLSearchParams();
     const search = String(values.get("search") || "").trim();
     const category = String(values.get("category") || "").trim();
+    const spotlight = String(values.get("spotlight") || "").trim();
     if (search) query.set("search", search);
     if (category) query.set("category", category);
-    if (values.get("featured")) query.set("featured", "1");
-    if (values.get("trending")) query.set("trending", "1");
+    if (spotlight === "featured") query.set("featured", "1");
+    if (spotlight === "trending") query.set("trending", "1");
     window.location.assign(`/news${query.size ? `?${query}` : ""}`);
   });
 }

@@ -30,11 +30,23 @@ function removeDir(dir) {
   }
 }
 
+function shouldSkipDistCopy(sourcePath) {
+  const relativePath = path.relative(root, sourcePath).split(path.sep).join("/");
+  return (
+    relativePath === "src/modules/marketplace/backend" ||
+    relativePath.startsWith("src/modules/marketplace/backend/")
+  );
+}
+
 function copyDir(source, target) {
+  if (shouldSkipDistCopy(source)) return;
+
   ensureDir(target);
   for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
     const from = path.join(source, entry.name);
     const to = path.join(target, entry.name);
+    if (shouldSkipDistCopy(from)) continue;
+
     if (entry.isDirectory()) {
       copyDir(from, to);
     } else {
