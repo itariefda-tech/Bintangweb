@@ -1,5 +1,4 @@
-# Keep the server-specific deployment script local to each environment.
-deploy.sh
+# Deployment script is tracked so the VPS can pull the same deploy flow.
 
 # Owner credentials and persisted builder content.
 .env
