@@ -16,7 +16,8 @@ FROM python:3.12-alpine
 
 WORKDIR /app
 
-COPY app.py marketplace_*.py ./
+COPY app.py ./
+COPY src/modules/marketplace/backend ./src/modules/marketplace/backend
 COPY --from=builder /app/dist/ ./public/
 
 RUN mkdir -p /app/data

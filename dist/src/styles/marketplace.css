@@ -2,9 +2,9 @@
 @import url("./shared-site-header.css?v=20260614-shared-header");
 @import url("./typography.css?v=20260614-auth-foundation");
 @import url("./utilities.css?v=20260614-auth-foundation");
-@import url("./components.css?v=20260623-filter-panel-rebuild");
+@import url("./components.css?v=20260623-news-fit");
 @import url("./animations.css?v=20260614-auth-foundation");
-@import url("./responsive.css?v=20260623-filter-panel-rebuild");
+@import url("./responsive.css?v=20260623-news-fit");
 
 *,
 *::before,
